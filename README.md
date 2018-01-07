@@ -41,6 +41,18 @@ $ yarn add futoin-secvault --save
 ## Classes
 
 <dl>
+<dt><a href="#DataFace">DataFace</a></dt>
+<dd><p>Data Face</p>
+</dd>
+<dt><a href="#DataService">DataService</a></dt>
+<dd><p>Data Service</p>
+</dd>
+<dt><a href="#KeyFace">KeyFace</a></dt>
+<dd><p>Keys Face</p>
+</dd>
+<dt><a href="#KeyService">KeyService</a></dt>
+<dd><p>Key Service</p>
+</dd>
 <dt><a href="#BaseFace">BaseFace</a></dt>
 <dd><p>Base Face with neutral common registration functionality</p>
 </dd>
@@ -49,6 +61,30 @@ $ yarn add futoin-secvault --save
 </dd>
 </dl>
 
+<a name="DataFace"></a>
+
+## DataFace
+Data Face
+
+**Kind**: global class  
+<a name="DataService"></a>
+
+## DataService
+Data Service
+
+**Kind**: global class  
+<a name="KeyFace"></a>
+
+## KeyFace
+Keys Face
+
+**Kind**: global class  
+<a name="KeyService"></a>
+
+## KeyService
+Key Service
+
+**Kind**: global class  
 <a name="BaseFace"></a>
 
 ## BaseFace
