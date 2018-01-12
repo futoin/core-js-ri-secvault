@@ -101,7 +101,8 @@
       "params": {
         "id": "KeyID",
         "format": "ContainerFormat",
-        "enc_key": "KeyID"
+        "enc_key": "KeyID",
+        "cipher": "CipherType"
       },
       "result": "string",
       "throws": [

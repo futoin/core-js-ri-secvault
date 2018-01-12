@@ -10,7 +10,11 @@
       "params": {
         "id": "KeyID",
         "data": "string",
-        "cipher": "CipherType"
+        "cipher": "CipherType",
+        "iv": {
+          "type": "IinitializationVector",
+          "default": null
+        }
       },
       "result": "string",
       "throws": [
