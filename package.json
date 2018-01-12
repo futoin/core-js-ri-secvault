@@ -56,6 +56,7 @@
     "futoin-invoker": "^1.7.6"
   },
   "dependencies": {
+    "futoin-hkdf": "^1.0.0",
     "lodash": "^4.17.4"
   }
 }

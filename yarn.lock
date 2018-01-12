@@ -904,6 +904,10 @@ futoin-executor@^1.7.5:
   optionalDependencies:
     posix "^4.1.1"
 
+futoin-hkdf@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/futoin-hkdf/-/futoin-hkdf-1.0.0.tgz#75b806bec97744a9f75f847290e350439bf55283"
+
 futoin-invoker@^1.7.7:
   version "1.7.7"
   resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-1.7.7.tgz#d1c21d5f13fbf54293dd166c527ea91963363c58"
