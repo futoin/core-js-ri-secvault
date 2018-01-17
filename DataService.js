@@ -21,6 +21,7 @@
 
 const BaseService = require( './lib/BaseService' );
 const DataFace = require( './DataFace' );
+const { VaultPlugin } = require( './lib/main' );
 
 /**
  * Data Service
@@ -31,23 +32,85 @@ class DataService extends BaseService {
     }
 
     encrypt( as, reqinfo ) {
-        reqinfo.ccm();
-        as.error( 'NotImplemented' );
+        const params = reqinfo.params();
+
+        this._loadCryptKey( as, params.id );
+
+        as.add( ( as, info ) => {
+            const { data, mode, iv, aad } = params;
+
+            this._storage.updateUsage( as, info.uuidb64, {
+                times: 1,
+                bytes: data.length,
+            } );
+
+            const p = VaultPlugin.getPlugin( info.type );
+            p.encrypt( as, info.raw, data, { mode, iv, aad } );
+        } );
     }
 
     decrypt( as, reqinfo ) {
-        reqinfo.ccm();
-        as.error( 'NotImplemented' );
+        const params = reqinfo.params();
+
+        this._loadCryptKey( as, params.id );
+
+        as.add( ( as, info ) => {
+            const { data, mode, aad } = params;
+
+            this._storage.updateUsage( as, info.uuidb64, {
+                times: 1,
+                bytes: data.length,
+            } );
+
+            const p = VaultPlugin.getPlugin( info.type );
+            as.add(
+                ( as ) => p.decrypt( as, info.raw, data, { mode, aad } ),
+                ( as, err ) => {
+                    this._storage.updateUsage( as, info.uuidb64, {
+                        failures: 1,
+                    } );
+                    as.add( ( as ) => as.error( err ) );
+                }
+            );
+        } );
     }
 
     sign( as, reqinfo ) {
-        reqinfo.ccm();
-        as.error( 'NotImplemented' );
+        const params = reqinfo.params();
+
+        this._loadSignKey( as, params.id );
+
+        as.add( ( as, info ) => {
+            const { data, hash } = params;
+
+            this._storage.updateUsage( as, info.uuidb64, {
+                times: 1,
+            } );
+
+            const p = VaultPlugin.getPlugin( info.type );
+            p.sign( as, info.raw, data, { hash } );
+        } );
     }
 
     verify( as, reqinfo ) {
-        reqinfo.ccm();
-        as.error( 'NotImplemented' );
+        const params = reqinfo.params();
+
+        this._loadSignKey( as, params.id );
+
+        as.add( ( as, info ) => {
+            const { data, hash } = params;
+            const p = VaultPlugin.getPlugin( info.type );
+
+            as.add(
+                ( as ) => p.verify( as, info.raw, data, { hash } ),
+                ( as, err ) => {
+                    this._storage.updateUsage( as, info.uuidb64, {
+                        failures: 1,
+                    } );
+                    as.add( ( as ) => as.error( err ) );
+                }
+            );
+        } );
     }
 
     /**
