@@ -82,6 +82,8 @@ describe( 'EncryptedStorage', function() {
                 };
                 let prev = new KeyInfo( { data: Buffer.alloc( 0 ) } );
 
+                estore.setStorageSecret( as, 'password' );
+
                 for ( let id in keys ) {
                     const raw = Buffer.from( keys[ id ] );
                     const ki = new KeyInfo( { raw } );
@@ -98,6 +100,49 @@ describe( 'EncryptedStorage', function() {
                         expect( ki.raw.equals( raw ) ).to.be.true;
                     } );
                 }
+            },
+            ( as, err ) => {
+                console.log( `${err}: ${as.state.error_info}` );
+                done( as.state.last_exception || 'Fail' );
+            }
+        );
+        as.add( ( as ) => done() );
+        as.execute();
+    } );
+
+    it( 'should detect locked storage', function( done ) {
+        as.add(
+            ( as ) => {
+                estore.setStorageSecret( as, 'password' );
+                as.add( ( as ) => estore.setStorageSecret( as, null ) );
+
+                const id = 'abcdefABCD123456789012';
+                const raw = Buffer.from( id );
+                const ki = new KeyInfo( { raw, data: raw } );
+
+                as.add(
+                    ( as ) => {
+                        estore._encrypt( as, id, ki );
+                        as.add( ( as ) => as.error( 'Fail' ) );
+                    },
+                    ( as, err ) => {
+                        if ( err === 'LockedStorage' ) {
+                            as.success();
+                        }
+                    }
+                );
+
+                as.add(
+                    ( as ) => {
+                        estore._decrypt( as, id, ki );
+                        as.add( ( as ) => as.error( 'Fail' ) );
+                    },
+                    ( as, err ) => {
+                        if ( err === 'LockedStorage' ) {
+                            as.success();
+                        }
+                    }
+                );
             },
             ( as, err ) => {
                 console.log( `${err}: ${as.state.error_info}` );

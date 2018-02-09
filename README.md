@@ -161,9 +161,26 @@ CCM registration helper
 Base Service with common registration logic
 
 **Kind**: global class  
+
+* [BaseService](#BaseService)
+    * [new BaseService(storage, options)](#new_BaseService_new)
+    * [.register(as, executor, storage, options)](#BaseService.register) ⇒ <code>LimitsService</code>
+
+<a name="new_BaseService_new"></a>
+
+### new BaseService(storage, options)
+C-tor
+
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| storage | [<code>Storage</code>](#Storage) |  | low-level storage instance |
+| options | <code>object</code> |  | passed to superclass c-tor |
+| options.failure_limit | <code>integer</code> | <code>10000</code> | limit crypt key decrypt failures |
+
 <a name="BaseService.register"></a>
 
-### BaseService.register(as, executor, options) ⇒ <code>LimitsService</code>
+### BaseService.register(as, executor, storage, options) ⇒ <code>LimitsService</code>
 Register futoin.xfers.limits interface with Executor
 
 **Kind**: static method of [<code>BaseService</code>](#BaseService)  
@@ -173,6 +190,7 @@ Register futoin.xfers.limits interface with Executor
 | --- | --- | --- |
 | as | <code>AsyncSteps</code> | steps interface |
 | executor | <code>Executor</code> | executor instance |
+| storage | [<code>Storage</code>](#Storage) | low-level storage instance |
 | options | <code>object</code> | implementation defined options |
 
 <a name="AESPlugin"></a>
@@ -232,8 +250,11 @@ Base for SecVault plugins
 
 * [VaultPlugin](#VaultPlugin)
     * _instance_
+        * [.defaultBits()](#VaultPlugin+defaultBits)
+        * [.isAsymetric()](#VaultPlugin+isAsymetric) ⇒ <code>boolean</code>
         * [.generate(as, options)](#VaultPlugin+generate)
-        * [.derive(as, base, bits, digest, options)](#VaultPlugin+derive)
+        * [.validateKey(as, key)](#VaultPlugin+validateKey)
+        * [.derive(as, base, bits, hash, options)](#VaultPlugin+derive)
         * [.pubkey(as, key, options)](#VaultPlugin+pubkey)
         * [.encrypt(as, key, data, options)](#VaultPlugin+encrypt)
         * [.decrypt(as, key, edata, options)](#VaultPlugin+decrypt)
@@ -244,6 +265,19 @@ Base for SecVault plugins
         * [.registerPlugin(name, impl)](#VaultPlugin.registerPlugin)
         * [.getPlugin(name)](#VaultPlugin.getPlugin) ⇒ [<code>VaultPlugin</code>](#VaultPlugin)
 
+<a name="VaultPlugin+defaultBits"></a>
+
+### vaultPlugin.defaultBits()
+Default bits to use, if applicable
+
+**Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
+<a name="VaultPlugin+isAsymetric"></a>
+
+### vaultPlugin.isAsymetric() ⇒ <code>boolean</code>
+Check if type conforms to asymmetric cryptography requirements
+
+**Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
+**Returns**: <code>boolean</code> - true, if assymetric  
 <a name="VaultPlugin+generate"></a>
 
 ### vaultPlugin.generate(as, options)
@@ -258,9 +292,21 @@ Generate new key
 | options | <code>object</code> | implementation-defined options |
 | options.bits | <code>integer</code> | key length, if applicable |
 
+<a name="VaultPlugin+validateKey"></a>
+
+### vaultPlugin.validateKey(as, key)
+Validate key data
+
+**Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| key | <code>Buffer</code> | key data to validate |
+
 <a name="VaultPlugin+derive"></a>
 
-### vaultPlugin.derive(as, base, bits, digest, options)
+### vaultPlugin.derive(as, base, bits, hash, options)
 Derive new key
 
 **Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
@@ -271,7 +317,7 @@ Derive new key
 | as | <code>AsyncSteps</code> |  | AsyncSteps interface |
 | base | <code>Buffer</code> |  | base key as is |
 | bits | <code>integer</code> |  | key length |
-| digest | <code>string</code> |  | digest name to use |
+| hash | <code>string</code> |  | hash name to use |
 | options | <code>object</code> |  | implementation-defined options |
 | options.salt | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | salt, if any |
 | options.info | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | info, if any |
