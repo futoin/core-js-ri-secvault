@@ -37,15 +37,19 @@ class KeyService extends BaseService {
 
     unlock( as, reqinfo ) {
         as.add(
-            ( as ) => this._storage.setStorageSecret( as, reqinfo.params().secret ),
+            ( as ) => {
+                this._storage.setStorageSecret( as, reqinfo.params().secret );
+                reqinfo.result( true );
+            },
             ( as, err ) => {
                 as.error( 'InvalidSecret' );
             }
         );
     }
 
-    lock( as ) {
+    lock( as, reqinfo ) {
         this._storage.setStorageSecret( as, null );
+        as.add( as => reqinfo.result( true ) );
     }
 
     _newKey( as, reqinfo, gen_cb, inject=false ) {
