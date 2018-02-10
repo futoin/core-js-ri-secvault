@@ -12,6 +12,48 @@ describe( 'Plugins', function() {
         as = $as();
     } );
 
+    describe( 'VaultPlugin', function() {
+        it ( 'should raise not implemented errors', function() {
+            expect( () => VaultPlugin.getPlugin( 'INVALID' ) )
+                .to.throw( 'UnsupportedType' );
+
+            const p = new VaultPlugin();
+
+            expect( () => p.defaultBits() )
+                .to.throw( 'NotApplicable' );
+
+            expect( p.isAsymetric() ).to.be.false;
+
+            const as = { error: ( err ) => {
+                throw new Error( err );
+            } };
+
+            expect( () => p.generate( as ) )
+                .to.throw( 'NotApplicable' );
+
+            expect( () => p.validateKey( as ) )
+                .to.throw( 'NotApplicable' );
+
+            expect( () => p.derive( as ) )
+                .to.throw( 'NotApplicable' );
+
+            expect( () => p.pubkey( as ) )
+                .to.throw( 'NotApplicable' );
+
+            expect( () => p.encrypt( as ) )
+                .to.throw( 'NotApplicable' );
+
+            expect( () => p.decrypt( as ) )
+                .to.throw( 'NotApplicable' );
+
+            expect( () => p.sign( as ) )
+                .to.throw( 'NotApplicable' );
+
+            expect( () => p.verify( as ) )
+                .to.throw( 'NotApplicable' );
+        } );
+    } );
+
     describe( 'PBKDF2', function() {
         // NOTE: test vectors from https://www.rfc-editor.org/rfc/rfc6070.txt
 
@@ -73,6 +115,103 @@ describe( 'Plugins', function() {
     } );
 
     describe( 'AES', function() {
+        it( 'generate()', function( done ) {
+            as.add(
+                ( as ) => {
+                    const p = VaultPlugin.getPlugin( 'AES' );
+                    //--
+
+                    p.generate( as );
+                    as.add( ( as, key ) => {
+                        expect( Buffer.isBuffer( key ) ).to.be.true;
+                        expect( key.length ).to.equal( 16 );
+                    } );
+
+
+                    p.generate( as, { bits: 192 } );
+                    as.add( ( as, key ) => {
+                        expect( key.length ).to.equal( 24 );
+                    } );
+
+                    p.generate( as, { bits: 256 } );
+                    as.add( ( as, key ) => {
+                        expect( key.length ).to.equal( 32 );
+                    } );
+
+                    expect( () => p.generate( as, { bits: 64 } ) )
+                        .to.throw( 'NotSupported' );
+                },
+                ( as, err ) => {
+                    console.log( `${err}: ${as.state.error_info}` );
+                    done( as.state.last_exception || 'Fail' );
+                }
+            );
+            as.add( ( as ) => done() );
+            as.execute();
+        } );
+
+        it( 'detect invalid IV length', function( done ) {
+            as.add(
+                ( as ) => {
+                    const p = VaultPlugin.getPlugin( 'AES' );
+                    //--
+
+                    const key = Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' );
+                    p.encrypt(
+                        as,
+                        key,
+                        Buffer.from( '00000000000000000000000000000000', 'hex' ),
+                        {
+                            iv: Buffer.from( '0000000000000000000000000000000', 'hex' ),
+                        }
+                    );
+
+                    as.add( ( as ) => as.error( 'Fail' ) );
+                },
+                ( as, err ) => {
+                    if ( err === 'InvalidIV' ) {
+                        as.success();
+                    } else {
+                        console.log( `${err}: ${as.state.error_info}` );
+                        done( as.state.last_exception || 'Fail' );
+                    }
+                }
+            );
+            as.add( ( as ) => done() );
+            as.execute();
+        } );
+
+        it( 'detect invalid mode', function( done ) {
+            as.add(
+                ( as ) => {
+                    const p = VaultPlugin.getPlugin( 'AES' );
+                    //--
+
+                    const key = Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' );
+                    p.encrypt(
+                        as,
+                        key,
+                        Buffer.from( '00000000000000000000000000000000', 'hex' ),
+                        {
+                            mode: 'INV',
+                        }
+                    );
+
+                    as.add( ( as ) => as.error( 'Fail' ) );
+                },
+                ( as, err ) => {
+                    if ( err === 'NotSupported' ) {
+                        as.success();
+                    } else {
+                        console.log( `${err}: ${as.state.error_info}` );
+                        done( as.state.last_exception || 'Fail' );
+                    }
+                }
+            );
+            as.add( ( as ) => done() );
+            as.execute();
+        } );
+
         it( 'CBC with NIST test vector', function( done ) {
             as.add(
                 ( as ) => {
@@ -244,6 +383,8 @@ describe( 'Plugins', function() {
                     const p = VaultPlugin.getPlugin( 'RSA' );
                     //--
 
+                    expect( p.isAsymetric() ).to.be.true;
+
                     p.generate( as, { bits: 1024 } );
                     as.add( ( as, key ) => {
                         expect( Buffer.isBuffer( key ) ).to.be.true;
@@ -251,7 +392,8 @@ describe( 'Plugins', function() {
                     } );
 
 
-                    p.generate( as, { bits: 2048 } );
+                    expect( p.defaultBits() ).to.equal( 2048 );
+                    p.generate( as );
                     as.add( ( as, key ) => {
                         expect( key.length ).above( 1670 ).below( 1700 );
                     } );
