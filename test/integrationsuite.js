@@ -2,13 +2,26 @@
 
 const expect = require( 'chai' ).expect;
 
+const $as = require( 'futoin-asyncsteps' );
 const Executor = require( 'futoin-executor/Executor' );
+//const CachedStorage = require( '../lib/storage/CachedStorage' );
+
+const STORAGE_PASSWORD = 'e3b694af320229f9b464a358eae063a8';
 
 module.exports = function( describe, it, vars ) {
-    let as;
-    let ccm;
-    let executor;
+    beforeEach( 'common', function() {
+        vars.as = $as();
+    } );
 
+
+    before( 'storage open', function( done ) {
+        require( '../lib/main' );
+        const as = $as();
+        vars.storage.setStorageSecret( as, Buffer.from( STORAGE_PASSWORD, 'hex' ) );
+        as.add( ( as ) => done() );
+        as.execute();
+    } );
+    /*
     beforeEach( 'common', function() {
         ccm = vars.ccm;
         as = vars.as;
@@ -36,6 +49,14 @@ module.exports = function( describe, it, vars ) {
             }
         );
     } );
+    */
 
-    //require( './currency_suite' )( describe, it, vars );
+    describe( 'Storage', function() {
+        require( './storage_suite' )( describe, it, vars, vars.storage );
+    } );
+    /*
+    describe( 'CachedStorage', function() {
+        require( './storage_suite' )( describe, it, vars );
+    } );
+    */
 };

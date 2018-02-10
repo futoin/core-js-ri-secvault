@@ -7,6 +7,7 @@ CREATE TABLE enc_keys (
     `u_sign` ENUM('N', 'Y') NOT NULL,
     `u_derive` ENUM('N', 'Y') NOT NULL,
     `u_shared` ENUM('N', 'Y') NOT NULL,
+    `u_temp` ENUM('N', 'Y') NOT NULL,
     `type` VARCHAR(32) NOT NULL,
     `params` TEXT NOT NULL,
     `data` TEXT NOT NULL,

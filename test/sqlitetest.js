@@ -7,6 +7,7 @@ const integration_suite = require( './integrationsuite' );
 const fs = require( 'fs' );
 
 const AdvancedCCM = require( 'futoin-invoker/AdvancedCCM' );
+const SQLStorage = require( '../lib/storage/SQLStorage' );
 
 describe( 'SQLite', function() {
     const secvault_db = `${__dirname}/secvault.db`;
@@ -66,42 +67,41 @@ describe( 'SQLite', function() {
             .execute();
     } );
 
+    const ccm = new AdvancedCCM();
     const vars = {
         as: null,
-        ccm: null,
+        ccm,
+        storage: new SQLStorage( ccm ),
     };
 
-    beforeEach( 'specific', function() {
-        const ccm = new AdvancedCCM();
-        const as = $as();
-        vars.ccm = ccm;
-        vars.as = as;
-
-        as.add(
-            ( as ) => {
-                DBAutoConfig( as, ccm, {
-                    xfer: {},
-                }, {
-                    DB_XFER_TYPE: 'sqlite',
-                    DB_XFER_SOCKET: secvault_db,
-                } );
-                as.add( ( as ) => {
-                    const db = ccm.db( 'xfer' );
-                    db.query( as, 'PRAGMA synchronous = OFF' );
-                    db.query( as, 'PRAGMA journal_mode = MEMORY' );
-                } );
-            },
-            ( as, err ) => {
-                console.log( err );
-                console.log( as.state.error_info );
-                console.log( as.state.last_exception );
-            }
-        );
+    before( 'specific', function( done ) {
+        $as()
+            .add(
+                ( as ) => {
+                    DBAutoConfig( as, ccm, {
+                        secvault: {},
+                    }, {
+                        DB_SECVAULT_TYPE: 'sqlite',
+                        DB_SECVAULT_SOCKET: secvault_db,
+                    } );
+                    as.add( ( as ) => {
+                        const db = ccm.db( 'secvault' );
+                        db.query( as, 'PRAGMA synchronous = OFF' );
+                        db.query( as, 'PRAGMA journal_mode = MEMORY' );
+                    } );
+                },
+                ( as, err ) => {
+                    console.log( err );
+                    console.log( as.state.error_info );
+                    done( as.state.last_exception || 'Fail' );
+                }
+            )
+            .add( ( as ) => done() )
+            .execute();
     } );
 
-    afterEach( function() {
-        vars.ccm.close();
-        vars.ccm = null;
+    after( 'specific', function() {
+        ccm.close();
     } );
 
     integration_suite( describe, it, vars );

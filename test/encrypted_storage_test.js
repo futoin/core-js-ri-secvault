@@ -4,6 +4,7 @@ const expect = require( 'chai' ).expect;
 const $as = require( 'futoin-asyncsteps' );
 
 const { VaultPlugin } = require( '../lib/main' );
+const Storage = require( '../lib/storage/Storage' );
 const EncryptedStorage = require( '../lib/storage/EncryptedStorage' );
 const KeyInfo = require( '../lib/storage/KeyInfo' );
 
@@ -84,17 +85,17 @@ describe( 'EncryptedStorage', function() {
 
                 estore.setStorageSecret( as, 'password' );
 
-                for ( let id in keys ) {
-                    const raw = Buffer.from( keys[ id ] );
-                    const ki = new KeyInfo( { raw } );
+                for ( let uuidb64 in keys ) {
+                    const raw = Buffer.from( keys[ uuidb64 ] );
+                    const ki = new KeyInfo( { uuidb64, raw } );
 
-                    as.add( ( as ) => estore._encrypt( as, id, ki ) );
+                    as.add( ( as ) => estore._encrypt( as, ki ) );
                     as.add( ( as ) => {
                         expect( ki.data ).to.be.not.equal( prev.data );
                         prev = ki;
 
                         ki.raw = null;
-                        estore._decrypt( as, id, ki );
+                        estore._decrypt( as, ki );
                     } );
                     as.add( ( as ) => {
                         expect( ki.raw.equals( raw ) ).to.be.true;
@@ -116,13 +117,13 @@ describe( 'EncryptedStorage', function() {
                 estore.setStorageSecret( as, 'password' );
                 as.add( ( as ) => estore.setStorageSecret( as, null ) );
 
-                const id = 'abcdefABCD123456789012';
-                const raw = Buffer.from( id );
-                const ki = new KeyInfo( { raw, data: raw } );
+                const uuidb64 = 'abcdefABCD123456789012';
+                const raw = Buffer.from( uuidb64 );
+                const ki = new KeyInfo( { uuidb64, raw, data: raw } );
 
                 as.add(
                     ( as ) => {
-                        estore._encrypt( as, id, ki );
+                        estore._encrypt( as, ki );
                         as.add( ( as ) => as.error( 'Fail' ) );
                     },
                     ( as, err ) => {
@@ -134,7 +135,7 @@ describe( 'EncryptedStorage', function() {
 
                 as.add(
                     ( as ) => {
-                        estore._decrypt( as, id, ki );
+                        estore._decrypt( as, ki );
                         as.add( ( as ) => as.error( 'Fail' ) );
                     },
                     ( as, err ) => {
@@ -151,5 +152,24 @@ describe( 'EncryptedStorage', function() {
         );
         as.add( ( as ) => done() );
         as.execute();
+    } );
+
+    it ( 'should increase coverage', function() {
+        expect( KeyInfo.PROP_NAMES ).to.be.instanceof( Array );
+
+        const storage = new Storage();
+        const as = { error: ( err ) => {
+            throw new Error( err );
+        } };
+
+        expect( () => storage.remove( as ) ).to.throw( 'NotImplemented' );
+        expect( () => storage.list( as ) ).to.throw( 'NotImplemented' );
+        expect( () => storage._load( as ) ).to.throw( 'NotImplemented' );
+        expect( () => storage._loadExt( as ) ).to.throw( 'NotImplemented' );
+        expect( () => storage._save( as ) ).to.throw( 'NotImplemented' );
+        expect( () => storage._update( as ) ).to.throw( 'NotImplemented' );
+
+        storage._encrypt();
+        storage._decrypt();
     } );
 } );

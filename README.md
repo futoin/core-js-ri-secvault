@@ -84,6 +84,9 @@ $ yarn add futoin-secvault --save
 <dt><a href="#KeyInfo">KeyInfo</a></dt>
 <dd><p>Sealed key info</p>
 </dd>
+<dt><a href="#SQLStorage">SQLStorage</a></dt>
+<dd><p>SQL secret storage</p>
+</dd>
 <dt><a href="#Storage">Storage</a></dt>
 <dd><p>Secret storage base</p>
 </dd>
@@ -491,6 +494,24 @@ C-tor
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | info | <code>object</code> | <code>{}</code> | optional default values |
+
+<a name="SQLStorage"></a>
+
+## SQLStorage
+SQL secret storage
+
+**Kind**: global class  
+<a name="new_SQLStorage_new"></a>
+
+### new SQLStorage(ccm, options)
+C-tor
+
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> |  | CCM instance with registered 'secvault' DB |
+| options | <code>object</code> |  | options |
+| options.key_table | <code>string</code> | <code>&quot;enc_keys&quot;</code> | name of encrypted key table |
 
 <a name="Storage"></a>
 

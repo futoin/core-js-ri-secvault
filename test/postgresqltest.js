@@ -6,6 +6,7 @@ const DBAutoConfig = require( 'futoin-database/AutoConfig' );
 const integration_suite = require( './integrationsuite' );
 
 const AdvancedCCM = require( 'futoin-invoker/AdvancedCCM' );
+const SQLStorage = require( '../lib/storage/SQLStorage' );
 
 const DB_PORT = process.env.POSTGRESQL_PORT || '5435';
 
@@ -60,41 +61,40 @@ describe( 'PostgreSQL', function() {
             .execute();
     } );
 
+    const ccm = new AdvancedCCM();
     const vars = {
         as: null,
-        ccm: null,
+        ccm,
+        storage: new SQLStorage( ccm ),
     };
 
-    beforeEach( 'specific', function() {
-        const ccm = new AdvancedCCM();
-        const as = $as();
-        vars.ccm = ccm;
-        vars.as = as;
-
-        as.add(
-            ( as ) => {
-                DBAutoConfig( as, ccm, {
-                    xfer: {},
-                }, {
-                    DB_XFER_TYPE: 'postgresql',
-                    DB_XFER_HOST: '127.0.0.1',
-                    DB_XFER_PORT: DB_PORT,
-                    DB_XFER_USER: 'ftntest',
-                    DB_XFER_DB: 'secvault',
-                    DB_XFER_PASS: 'test',
-                } );
-            },
-            ( as, err ) => {
-                console.log( err );
-                console.log( as.state.error_info );
-                console.log( as.state.last_exception );
-            }
-        );
+    before( 'specific', function( done ) {
+        $as()
+            .add(
+                ( as ) => {
+                    DBAutoConfig( as, ccm, {
+                        secvault: {},
+                    }, {
+                        DB_SECVAULT_TYPE: 'postgresql',
+                        DB_SECVAULT_HOST: '127.0.0.1',
+                        DB_SECVAULT_PORT: DB_PORT,
+                        DB_SECVAULT_USER: 'ftntest',
+                        DB_SECVAULT_DB: 'secvault',
+                        DB_SECVAULT_PASS: 'test',
+                    } );
+                },
+                ( as, err ) => {
+                    console.log( err );
+                    console.log( as.state.error_info );
+                    done( as.state.last_exception || 'Fail' );
+                }
+            )
+            .add( ( as ) => done() )
+            .execute();
     } );
 
-    afterEach( function() {
-        vars.ccm.close();
-        vars.ccm = null;
+    after( 'specific', function() {
+        ccm.close();
     } );
 
     integration_suite( describe, it, vars );

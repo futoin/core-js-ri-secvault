@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "futoin-hkdf": "^1.0.0",
+    "futoin-uuid": "^1.0.0",
     "lodash": "^4.17.5",
     "pem": "^1.12.3"
   }

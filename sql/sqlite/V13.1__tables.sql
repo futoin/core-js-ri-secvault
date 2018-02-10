@@ -6,6 +6,7 @@ CREATE TABLE enc_keys (
     "u_sign" CHARACTER(1) NOT NULL,
     "u_derive" CHARACTER(1) NOT NULL,
     "u_shared" CHARACTER(1) NOT NULL,
+    "u_temp" CHARACTER(1) NOT NULL,
     "type" VARCHAR(32) NOT NULL,
     "params" TEXT NOT NULL,
     "data" TEXT NOT NULL,

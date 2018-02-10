@@ -8,6 +8,7 @@ CREATE TABLE enc_keys (
     "u_sign" enabled_enum NOT NULL,
     "u_derive" enabled_enum NOT NULL,
     "u_shared" enabled_enum NOT NULL,
+    "u_temp" enabled_enum NOT NULL,
     "type" VARCHAR(32) NOT NULL,
     "params" TEXT NOT NULL,
     "data" TEXT NOT NULL,
