@@ -2,7 +2,7 @@
 
 const expect = require( 'chai' ).expect;
 const $as = require( 'futoin-asyncsteps' );
-const $as_test = require( './ashelper' );
+const $as_test = require( 'futoin-asyncsteps/testcase' );
 const UUIDTool = require( 'futoin-uuid' );
 const crypto = require( 'crypto' );
 

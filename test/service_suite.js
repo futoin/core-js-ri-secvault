@@ -1,8 +1,10 @@
 'use strict';
 
 const $as = require( 'futoin-asyncsteps' );
-const $as_test = require( './ashelper' );
+const $as_test = require( 'futoin-asyncsteps/testcase' );
 const Executor = require( 'futoin-executor/Executor' );
+const UUIDTool = require( 'futoin-uuid' );
+const expect = require( 'chai' ).expect;
 
 const KeyService = require( '../KeyService' );
 const DataService = require( '../DataService' );
@@ -11,6 +13,7 @@ const DataFace = require( '../DataFace' );
 
 module.exports = function( describe, it, vars, storage ) {
     const ccm = vars.ccm;
+    const run_id = UUIDTool.genB64();
 
     before( 'service', function( done ) {
         const executor = vars.executor = new Executor( ccm );
@@ -18,12 +21,12 @@ module.exports = function( describe, it, vars, storage ) {
         executor.on( 'notExpected', function() {
             console.dir( arguments );
 
-            if ( arguments[3] ) {
+            /*if ( arguments[3] ) {
                 for ( var f of arguments[3] ) {
                     console.log( '================================' );
                     console.log( f.toString() );
                 }
-            }
+            }*/
         } );
 
         $as_test( ( as ) => {
@@ -53,6 +56,182 @@ module.exports = function( describe, it, vars, storage ) {
             key_face.unlock( as, secret_key );
         } ) );
 
+        // generate tests
+        //=====================
+        it ( 'should generate AES keys', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `aes128-${run_id}`,
+                [ 'encrypt', 'sign' ],
+                'AES',
+                128
+            );
+
+            key_face.generateKey(
+                as,
+                `aes192-${run_id}`,
+                [ 'derive', 'shared' ],
+                'AES',
+                192
+            );
+
+            key_face.generateKey(
+                as,
+                `aes256-${run_id}`,
+                [ 'temp' ],
+                'AES',
+                { bits: 256 }
+            );
+        } ) );
+
+        it ( 'should generate RSA keys', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `rsa1024-${run_id}`,
+                [ 'encrypt', 'sign' ],
+                'RSA',
+                1024
+            );
+        } ) );
+
+        it ( 'should ensure key is generated in dup', $as_test( ( as ) => {
+            const p = as.parallel();
+            p.add( as => {
+                key_face.generateKey(
+                    as,
+                    `aesdup-${run_id}`,
+                    [],
+                    'AES',
+                    128
+                );
+                as.add( ( as, id ) => as.state.id1 = id );
+            } );
+            p.add( as => {
+                key_face.generateKey(
+                    as,
+                    `aesdup-${run_id}`,
+                    [],
+                    'AES',
+                    128
+                );
+                as.add( ( as, id ) => as.state.id2 = id );
+            } );
+            as.add( ( as, id ) => expect( as.state.id1 ).equal( as.state.id2 ) );
+        } ) );
+
+        it ( 'should fail on mismatch', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `rsa1024-${run_id}`,
+                    [ 'encrypt', 'sign' ],
+                    'RSA',
+                    2048
+                );
+            },
+            ( as, err ) => {
+                if ( err === 'OrigMismatch' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'should fail on unsupported key', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `inv1-${run_id}`,
+                    [ 'encrypt', 'sign' ],
+                    'INV',
+                    1
+                );
+            },
+            ( as, err ) => {
+                if ( err === 'UnsupportedType' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        // inject tests
+        //=====================
+        it ( 'should inject keys', $as_test( ( as ) => {
+            key_face.injectKey(
+                as,
+                `aes128inject-${run_id}`,
+                [ 'shared' ],
+                'AES',
+                128,
+                Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' )
+            );
+        } ) );
+
+        it ( 'should fail inject on mismatch', $as_test(
+            ( as ) => {
+                key_face.injectKey(
+                    as,
+                    `aes128inject-${run_id}`,
+                    [ 'shared' ],
+                    'AES',
+                    128,
+                    Buffer.from( '10a58869d74be5a374cf867cfb473800', 'hex' )
+                );
+            },
+            ( as, err ) => {
+                if ( err === 'OrigMismatch' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'should fail inject on invalid key', $as_test(
+            ( as ) => {
+                key_face.injectKey(
+                    as,
+                    `aes128inject-${run_id}`,
+                    [ 'shared' ],
+                    'AES',
+                    128,
+                    Buffer.from( '10a58869d74be5a374cf867cfb4738', 'hex' )
+                );
+            },
+            ( as, err ) => {
+                if ( err === 'InvalidKey' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        // Inject encrypted
+        //=====================
+        it ( 'should inject encrypted key', $as_test( ( as ) => {
+            key_face.injectKey(
+                as,
+                `aes128kek-${run_id}`,
+                [ 'encrypt' ],
+                'AES',
+                128,
+                Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' )
+            );
+            as.add( ( as, kek_id ) => {
+                key_face.injectEncryptedKey(
+                    as,
+                    `aes128enckey-${run_id}`,
+                    [ 'shared' ],
+                    'AES',
+                    128,
+                    Buffer.from( '6d251e6944b051e04eaa6fb4dbf78465881572c3a96a612c111055707bd7614e00000000000000000000000000000000', 'hex' ),
+                    kek_id,
+                    'CBC'
+                );
+            } );
+            as.add( ( as, id ) => {
+                key_face.exposeKey( as, id );
+                as.add( ( as, key ) => expect( key.toString( 'hex' ) ).equal( '00000000000000000000000000000000' ) );
+            } );
+        } ) );
+
+        //=====================
         it ( 'should lock', $as_test( ( as ) => {
             key_face.lock( as );
 

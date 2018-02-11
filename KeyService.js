@@ -20,7 +20,7 @@
  */
 
 const UUIDTool = require( 'futoin-uuid' );
-const _isEmpty = require( 'lodash/isEmpty' );
+const _isEqual = require( 'lodash/isEqual' );
 
 const BaseService = require( './lib/BaseService' );
 const KeyFace = require( './KeyFace' );
@@ -60,11 +60,11 @@ class KeyService extends BaseService {
         const info = new KeyInfo( {
             uuidb64 : UUIDTool.genB64(),
             ext_id,
-            u_encrypt : usage_set.set( 'encrypt' ),
-            u_sign : usage_set.set( 'sign' ),
-            u_derive : usage_set.set( 'derive' ),
-            u_shared : usage_set.set( 'shared' ),
-            u_temp : usage_set.set( 'temp' ),
+            u_encrypt : usage_set.has( 'encrypt' ),
+            u_sign : usage_set.has( 'sign' ),
+            u_derive : usage_set.has( 'derive' ),
+            u_shared : usage_set.has( 'shared' ),
+            u_temp : usage_set.has( 'temp' ),
             type : key_type,
         } );
 
@@ -76,57 +76,66 @@ class KeyService extends BaseService {
             info.params = { curve : gen_params };
         }
 
+        let vp;
+
+        try {
+            vp = VaultPlugin.getPlugin( key_type );
+        } catch ( _ ) {
+            as.error( 'UnsupportedType' );
+        }
+
         as.add(
             ( as ) => {
+                // Avoid resources spent on generation, if already exists
                 storage.loadExt( as, ext_id, false );
             },
             ( as, err ) => {
+                if ( err !== 'UnknownKeyID' ) {
+                    return;
+                }
+
                 as.add( ( as ) => gen_cb( as, key_type, info.params ) );
-                as.add(
-                    ( as, key ) => {
-                        let p_key;
-
-                        try {
-                            p_key = VaultPlugin.getPlugin( key_type );
-                        } catch ( _ ) {
-                            as.error( 'UnsupportedKey' );
+                as.add( ( as, key ) => {
+                    as.add(
+                        ( as ) => vp.validateKey( as, key ),
+                        ( as, err ) => as.error( 'InvalidKey', as.state.error_info )
+                    );
+                    as.add(
+                        ( as ) => {
+                            info.raw = key;
+                            storage.save( as, info );
+                        },
+                        ( as, err ) => {
+                            if ( err === 'Duplicate' ) {
+                                storage.loadExt( as, ext_id, false );
+                            }
                         }
-
-                        try {
-                            p_key.validateKey( key );
-                        } catch ( _ ) {
-                            as.error( 'InvalidKey' );
-                        }
-
-                        info.raw = key;
-                        storage.save( as, info );
-                    },
-                    ( as, err ) => {
-                        storage.loadExt( as, ext_id, false );
-                    }
-                );
+                    );
+                } );
             }
         );
 
         as.add( ( as, old_info ) => {
-            if ( ( old_info.u_encrypt !== usage_set.set( 'encrypt' ) ) ||
-                 ( old_info.u_sign !== usage_set.set( 'sign' ) ) ||
-                 ( old_info.u_derive !== usage_set.set( 'derive' ) ) ||
-                 ( old_info.u_shared !== usage_set.set( 'shared' ) ) ||
-                 ( old_info.u_temp !== usage_set.set( 'temp' ) ) ||
+            if ( ( old_info.u_encrypt !== usage_set.has( 'encrypt' ) ) ||
+                 ( old_info.u_sign !== usage_set.has( 'sign' ) ) ||
+                 ( old_info.u_derive !== usage_set.has( 'derive' ) ) ||
+                 ( old_info.u_shared !== usage_set.has( 'shared' ) ) ||
+                 ( old_info.u_temp !== usage_set.has( 'temp' ) ) ||
                  ( old_info.type !== key_type ) ||
-                 ( !_isEmpty( old_info.params, info.params ) ) ||
+                 ( !_isEqual( old_info.params, info.params ) ) ||
                  ( inject && !old_info.raw.equals( info.raw ) )
             ) {
                 as.error( 'OrigMismatch' );
             }
+
+            reqinfo.result( old_info.uuidb64 );
         } );
     }
 
     generateKey( as, reqinfo ) {
         this._newKey( as, reqinfo, ( as, key_type, options ) => {
-            const p = VaultPlugin.getPlugin( key_type );
-            p.generate( as, options );
+            const vp = VaultPlugin.getPlugin( key_type );
+            vp.generate( as, options );
         } );
     }
 
@@ -142,11 +151,11 @@ class KeyService extends BaseService {
             this._loadCryptKey( as, enc_key );
 
             as.add( ( as, enc_key_info ) => {
-                const p = VaultPlugin.getPlugin( enc_key_info.type );
+                const vp = VaultPlugin.getPlugin( enc_key_info.type );
 
                 as.add(
                     ( as ) => {
-                        p.decrypt( as, enc_key_info.raw, data, { mode } );
+                        vp.decrypt( as, enc_key_info.raw, data, { mode } );
                     },
                     ( as, err ) => {
                         this._storage.updateUsage( as, enc_key_info.uuidb64, {
@@ -163,13 +172,13 @@ class KeyService extends BaseService {
         this._newKey( as, reqinfo, ( as, key_type ) => {
             const { base_key, kdf, hash, salt, other } = reqinfo.params();
 
-            const p_key = VaultPlugin.getPlugin( key_type );
-            const bits = other.bits || p_key.defaultBits();
+            const vp = VaultPlugin.getPlugin( key_type );
+            const bits = other.bits || vp.defaultBits();
             const options = Object.assign( { salt }, other );
-            let p_kdf;
+            let vp_kdf;
 
             try {
-                p_kdf = VaultPlugin.getPlugin( kdf );
+                vp_kdf = VaultPlugin.getPlugin( kdf );
             } catch ( _ ) {
                 as.error( 'UnsupportedDerivation' );
             }
@@ -181,7 +190,7 @@ class KeyService extends BaseService {
                     as.error( 'NotApplicable' );
                 }
 
-                p_kdf.derive( as, base_key_info.raw, bits, hash, options );
+                vp_kdf.derive( as, base_key_info.raw, bits, hash, options );
             } );
         } );
     }
@@ -204,7 +213,7 @@ class KeyService extends BaseService {
 
     exposeKey( as, reqinfo ) {
         this._exposeCommon( as, reqinfo, ( as, info ) => {
-            as.success( info.raw );
+            reqinfo.result( info.raw );
         } );
     }
 
@@ -214,7 +223,7 @@ class KeyService extends BaseService {
 
             this._loadCryptKey( as, enc_key );
             as.add( ( as, enc_key_info ) => {
-                const p_enc = VaultPlugin.get( enc_key.type );
+                const vp = VaultPlugin.get( enc_key.type );
                 const raw = info.raw;
 
                 this._storage.updateUsage( as, enc_key_info.uuidb64, {
@@ -222,7 +231,8 @@ class KeyService extends BaseService {
                     bytes: raw.length,
                 } );
 
-                p_enc.encrypt( as, enc_key_info.raw, raw, { mode } );
+                vp.encrypt( as, enc_key_info.raw, raw, { mode } );
+                as.add( ( as, data ) => reqinfo.result( data ) );
             } );
         } );
     }
@@ -231,13 +241,14 @@ class KeyService extends BaseService {
         this._exposeCommon( as, reqinfo, ( as, info ) => {
             const { pubkey, key_type } = reqinfo.params();
 
-            const p_enc = VaultPlugin.get( key_type );
+            const vp = VaultPlugin.get( key_type );
 
-            if ( !p_enc.isAsymetric() ) {
+            if ( !vp.isAsymetric() ) {
                 as.error( 'NotApplicable' );
             }
 
-            p_enc.encrypt( as, pubkey, info.raw );
+            vp.encrypt( as, pubkey, info.raw );
+            as.add( ( as, data ) => reqinfo.result( data ) );
         } );
     }
 
@@ -245,13 +256,13 @@ class KeyService extends BaseService {
         this._loadCryptKey( as, reqinfo.params().id );
 
         as.add( ( as, info ) => {
-            const p = VaultPlugin.get( info.type );
+            const vp = VaultPlugin.get( info.type );
 
-            if ( !p.isAsymetric() ) {
+            if ( !vp.isAsymetric() ) {
                 as.error( 'NotApplicable' );
             }
 
-            p.pubkey( as, info.raw );
+            vp.pubkey( as, info.raw );
         } );
     }
 
