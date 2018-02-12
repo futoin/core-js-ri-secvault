@@ -22,4 +22,3 @@ script:
 - rm -rf node_modules
 - nodeVer=$TRAVIS_NODE_VERSION nodeEnv=development cid prepare
 - nodeVer=$TRAVIS_NODE_VERSION nodeEnv=development cid run test
-
