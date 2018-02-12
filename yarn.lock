@@ -910,11 +910,12 @@ futoin-asyncsteps@^1.11.2:
   dependencies:
     performance-now "^2.1.0"
 
-futoin-database@^1.7.2:
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/futoin-database/-/futoin-database-1.7.2.tgz#155f63252ca4d25db3aecb521de7ab022b5183eb"
+futoin-database@^1.7.3:
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/futoin-database/-/futoin-database-1.7.3.tgz#d249ff4e8b8d8579800e0cbe13afe73b4d19815a"
   dependencies:
-    lodash "^4.17.4"
+    futoin-asyncevent "^1.0.0"
+    lodash "^4.17.5"
     moment "^2.20.1"
   optionalDependencies:
     mysql "^2.15.0"

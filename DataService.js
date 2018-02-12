@@ -46,6 +46,7 @@ class DataService extends BaseService {
 
             const p = VaultPlugin.getPlugin( info.type );
             p.encrypt( as, info.raw, data, { mode, iv, aad } );
+            as.add( ( as, edata ) => reqinfo.result( edata ) );
         } );
     }
 
@@ -72,6 +73,7 @@ class DataService extends BaseService {
                     as.add( ( as ) => as.error( err ) );
                 }
             );
+            as.add( ( as, rdata ) => reqinfo.result( rdata ) );
         } );
     }
 
@@ -89,6 +91,7 @@ class DataService extends BaseService {
 
             const p = VaultPlugin.getPlugin( info.type );
             p.sign( as, info.raw, data, { hash } );
+            as.add( ( as, sig ) => reqinfo.result( sig ) );
         } );
     }
 
@@ -98,11 +101,17 @@ class DataService extends BaseService {
         this._loadSignKey( as, params.id );
 
         as.add( ( as, info ) => {
-            const { data, hash } = params;
+            const { data, sig, hash } = params;
             const p = VaultPlugin.getPlugin( info.type );
 
             as.add(
-                ( as ) => p.verify( as, info.raw, data, { hash } ),
+                ( as ) => {
+                    const info_pubkey = info.params.pubkey;
+                    const pubkey = info_pubkey ? Buffer.from( info_pubkey ) : info.raw;
+
+                    p.verify( as, pubkey, data, sig, { hash } );
+                    reqinfo.result( true );
+                },
                 ( as, err ) => {
                     this._storage.updateUsage( as, info.uuidb64, {
                         failures: 1,

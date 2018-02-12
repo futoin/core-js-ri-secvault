@@ -89,13 +89,22 @@ class KeyService extends BaseService {
             as.error( 'UnsupportedType' );
         }
 
+        const generate_common = ( as ) => {
+            as.add( ( as ) => gen_cb( as, key_type, info.params ) );
+            as.add( ( as, key ) => {
+                info.raw = key;
+
+                if ( vp.isAsymetric() ) {
+                    vp.pubkey( as, key );
+                    as.add( ( as, pubkey ) => info.params.pubkey = pubkey.toString() );
+                }
+            } );
+        };
+
         as.add(
             ( as ) => {
                 if ( inject ) {
-                    as.add( ( as ) => gen_cb( as, key_type, info.params ) );
-                    as.add( ( as, key ) => {
-                        info.raw = key;
-                    } );
+                    generate_common( as );
                 }
 
                 // Avoid resources spent on generation, if already exists
@@ -107,10 +116,7 @@ class KeyService extends BaseService {
                 }
 
                 if ( !info.raw ) {
-                    as.add( ( as ) => gen_cb( as, key_type, info.params ) );
-                    as.add( ( as, key ) => {
-                        info.raw = key;
-                    } );
+                    generate_common( as );
                 }
 
                 as.add(
@@ -131,13 +137,20 @@ class KeyService extends BaseService {
         );
 
         as.add( ( as, old_info ) => {
+            const info_params = info.params;
+            const old_info_params = old_info.params;
+
+            if ( vp.isAsymetric() && !( 'pubkey' in info_params ) ) {
+                info_params.pubkey = old_info_params.pubkey;
+            }
+
             if ( ( old_info.u_encrypt !== usage_set.has( 'encrypt' ) ) ||
                  ( old_info.u_sign !== usage_set.has( 'sign' ) ) ||
                  ( old_info.u_derive !== usage_set.has( 'derive' ) ) ||
                  ( old_info.u_shared !== usage_set.has( 'shared' ) ) ||
                  ( old_info.u_temp !== usage_set.has( 'temp' ) ) ||
                  ( old_info.type !== key_type ) ||
-                 ( !_isEqual( old_info.params, info.params ) ) ||
+                 !_isEqual( old_info_params, info_params ) ||
                  ( inject && !old_info.raw.equals( info.raw ) )
             ) {
                 as.error( 'OrigMismatch' );

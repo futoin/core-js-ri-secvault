@@ -601,9 +601,106 @@ module.exports = function( describe, it, vars, storage ) {
 
     describe( 'DataService', function() {
         let data_face;
+        let key_face;
 
         before( function() {
+            key_face = ccm.iface( 'secvault.keys' );
             data_face = ccm.iface( 'secvault.data' );
         } );
+
+        it ( 'encrypt & decrypt AES', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `aes192enc-${run_id}`,
+                [ 'encrypt' ],
+                'AES',
+                192
+            );
+
+            as.add( ( as, id ) => {
+                const data = Buffer.from( 'Some Test Data' );
+                const aad = Buffer.from( 'Some Auth' );
+                data_face.encrypt( as, id, data, 'GCM', null, aad );
+
+                as.add( ( as, edata ) => {
+                    data_face.decrypt( as, id, edata, 'GCM', aad );
+                } );
+
+                as.add( ( as, res ) => {
+                    expect( res.equals( data ) ).to.be.true;
+                } );
+            } );
+        } ) );
+
+        it ( 'encrypt & decrypt RSA', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `rsa1024enc-${run_id}`,
+                [ 'encrypt' ],
+                'RSA',
+                1024
+            );
+
+            as.add( ( as, id ) => {
+                const data = Buffer.from( 'Some Test Data' );
+                data_face.encrypt( as, id, data );
+
+                as.add( ( as, edata ) => {
+                    data_face.decrypt( as, id, edata );
+                } );
+
+                as.add( ( as, res ) => {
+                    expect( res.equals( data ) ).to.be.true;
+                } );
+            } );
+        } ) );
+
+        it ( 'sign & verify RSA', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `rsa1024sign-`,
+                [ 'sign' ],
+                'RSA',
+                1024
+            );
+
+            as.add( ( as, id ) => {
+                const data = Buffer.from( 'Some Test Data' );
+                data_face.sign( as, id, data, 'SHA-256' );
+
+                as.add( ( as, sig ) => {
+                    data_face.verify( as, id, data, sig, 'SHA-256' );
+                } );
+
+                as.add( ( as, res ) => {
+                    expect( res ).to.be.true;
+                } );
+            } );
+        } ) );
+
+        it ( 'encrypt & fail decrypt RSA', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `rsa1024enc-${run_id}`,
+                    [ 'encrypt' ],
+                    'RSA',
+                    1024
+                );
+
+                as.add( ( as, id ) => {
+                    const data = Buffer.from( 'Some Test Data' );
+                    data_face.encrypt( as, id, data );
+
+                    as.add( ( as, edata ) => {
+                        data_face.decrypt( as, id, edata.slice( 1 ) );
+                    } );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'InvalidData' ) {
+                    as.success();
+                }
+            } ) );
     } );
 };

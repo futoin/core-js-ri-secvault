@@ -6,18 +6,21 @@
 
   [![NPM](https://nodei.co/npm/futoin-secvault.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/futoin-secvault/)
 
-# FutoIn reference implementation
+# About
+
+FutoIn Secure Vault (SV) is a concept to minimize sensitive cryptographic exposure
+in project. Is allows different type of key management, data encryption and signing.
+
+This reference implementation is based on encrypted SQL storage. However, the same interface
+can be implemented in Host Secure Modules (HSM) on demand.
+
+**Documentation** --> [FutoIn Guide](https://futoin.org/docs/secvault/)
 
 Reference implementation of:
  
 * [FTN13: FutoIn Secure Vault](http://specs.futoin.org/draft/preview/ftn13_secure_vault.html)
 
 Author: [Andrey Galkin](mailto:andrey@futoin.org)
-
-[Web Site](http://futoin.org/)
-
-# About
-
 
 # Installation for Node.js
 
