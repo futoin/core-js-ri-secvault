@@ -23,7 +23,11 @@
     "futoin",
     "vault",
     "keys",
-    "cryptography"
+    "cryptography",
+    "aes",
+    "rsa",
+    "encryption",
+    "signature"
   ],
   "author": {
     "name": "Andrey Galkin",

@@ -8,11 +8,32 @@
 
 # About
 
-FutoIn Secure Vault (SV) is a concept to minimize sensitive cryptographic exposure
-in project. Is allows different type of key management, data encryption and signing.
+FutoIn Secure Vault (SV) is a concept to minimize sensitive cryptographic data exposure
+in projects. It allows different type of key management, data encryption and signing.
 
 This reference implementation is based on encrypted SQL storage. However, the same interface
 can be implemented in Host Secure Modules (HSM) on demand.
+
+Features:
+
+* Key types:
+    - AES
+    - RSA
+* Key derivation:
+    - PBKDF2
+    - HKDF
+* Key manipulations:
+    - Generation
+    - Injection
+    - Encrypted injection
+    - Plain exposure
+    - Encrypted exposure
+    - Wipe out
+    - Derivation
+    - Public key exposure
+* Data manipulations
+    - Encryption & Decryption
+    - Signing & Verification
 
 **Documentation** --> [FutoIn Guide](https://futoin.org/docs/secvault/)
 
