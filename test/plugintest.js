@@ -162,7 +162,7 @@ describe( 'Plugins', function() {
                         key,
                         Buffer.from( '00000000000000000000000000000000', 'hex' ),
                         {
-                            iv: Buffer.from( '0000000000000000000000000000000', 'hex' ),
+                            iv: Buffer.from( '000000000000000000000000000000', 'hex' ),
                         }
                     );
 
