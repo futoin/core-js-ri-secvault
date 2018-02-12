@@ -37,7 +37,6 @@ module.exports = function( describe, it, vars, storage ) {
     it ( 'should not find key by ID', $as_test(
         ( as ) => {
             storage.load( as, uuidb64 );
-            as.add( ( as ) => as.error( 'Fail' ) );
         },
         ( as, err ) => {
             if ( err === 'UnknownKeyID' ) {
@@ -49,7 +48,6 @@ module.exports = function( describe, it, vars, storage ) {
     it ( 'should not find key by ext ID', $as_test(
         ( as ) => {
             storage.loadExt( as, ext_id );
-            as.add( ( as ) => as.error( 'Fail' ) );
         },
         ( as, err ) => {
             if ( err === 'UnknownKeyID' ) {
@@ -67,7 +65,6 @@ module.exports = function( describe, it, vars, storage ) {
     it ( 'should detect duplicate on save', $as_test(
         ( as ) => {
             storage.save( as, new KeyInfo( key_info ) );
-            as.add( ( as ) => as.error( 'Fail' ) );
         },
         ( as, err ) => {
             if ( err === 'Duplicate' ) {
@@ -174,7 +171,6 @@ module.exports = function( describe, it, vars, storage ) {
                 failures : 345,
                 unknown: 2,
             } );
-            as.add( ( as ) => as.error( 'Fail' ) );
         },
         ( as, err ) => {
             if ( err === 'InvalidArgument' ) {

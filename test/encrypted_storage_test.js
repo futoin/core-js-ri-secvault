@@ -2,6 +2,7 @@
 
 const expect = require( 'chai' ).expect;
 const $as = require( 'futoin-asyncsteps' );
+const $as_test = require( 'futoin-asyncsteps/testcase' );
 
 const { VaultPlugin } = require( '../lib/main' );
 const Storage = require( '../lib/storage/Storage' );
@@ -13,11 +14,26 @@ describe( 'EncryptedStorage', function() {
     let estore;
 
     before( 'EncryptedStorage', function() {
-        estore = new EncryptedStorage();
+        estore = new class extends EncryptedStorage {
+            _save( as, key_info ) {
+                this._saved = key_info;
+            }
+
+            _loadExt( as ) {
+                as.add( ( as ) => {
+                    if ( this._saved ) {
+                        as.success( this._saved );
+                    } else {
+                        as.error( 'UnknownKeyID' );
+                    }
+                } );
+            }
+        };
     } );
 
     beforeEach( 'EncryptedStorage', function() {
         as = $as();
+        estore._saved = null;
     } );
 
     after( 'EncryptedStorage', function() {
@@ -25,15 +41,16 @@ describe( 'EncryptedStorage', function() {
         as = null;
     } );
 
-    it( 'should setup direct KEK', function( done ) {
-        as.add(
-            ( as ) => {
-                estore.setStorageSecret(
-                    as,
-                    Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' ),
-                    { mode: 'CBC' },
-                    null
-                );
+    it( 'should setup direct KEK', $as_test(
+        ( as ) => {
+            estore.setStorageSecret(
+                as,
+                Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' ),
+                { mode: 'CBC' },
+                null
+            );
+
+            as.add( ( as ) => {
                 expect( estore._enc_plugin ).to.be.ok;
                 expect( estore._cipher_opts ).to.eql( {
                     type: 'AES',
@@ -42,20 +59,15 @@ describe( 'EncryptedStorage', function() {
                     aad: estore._cipher_opts.aad,
                 } );
                 expect( estore._cipher_opts.aad.toString() ).to.equal( 'SecVault' );
-            },
-            ( as, err ) => {
-                console.log( `${err}: ${as.state.error_info}` );
-                done( as.state.last_exception || 'Fail' );
-            }
-        );
-        as.add( ( as ) => done() );
-        as.execute();
-    } );
+            } );
+        }
+    ) );
 
-    it( 'should setup password-based KEK', function( done ) {
-        as.add(
-            ( as ) => {
-                estore.setStorageSecret( as, 'password' );
+    it( 'should setup password-based KEK', $as_test(
+        ( as ) => {
+            estore.setStorageSecret( as, 'password' );
+
+            as.add( ( as ) => {
                 expect( estore._enc_plugin ).to.be.ok;
                 expect( estore._cipher_opts ).to.eql( {
                     type: 'AES',
@@ -63,15 +75,9 @@ describe( 'EncryptedStorage', function() {
                     mode: 'GCM',
                     aad: estore._cipher_opts.aad,
                 } );
-            },
-            ( as, err ) => {
-                console.log( `${err}: ${as.state.error_info}` );
-                done( as.state.last_exception || 'Fail' );
-            }
-        );
-        as.add( ( as ) => done() );
-        as.execute();
-    } );
+            } );
+        }
+    ) );
 
     it( 'should encrypt and decrypt', function( done ) {
         as.add(

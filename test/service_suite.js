@@ -56,6 +56,17 @@ module.exports = function( describe, it, vars, storage ) {
 
         const secret_key = Buffer.from( vars.STORAGE_PASSWORD, 'hex' );
 
+        it ( 'should detect invalid secret on unlock', $as_test(
+            ( as ) => {
+                key_face.unlock( as, Buffer.from( 'INVALID' ) );
+            },
+            ( as, err ) => {
+                if ( err === 'InvalidSecret' ) {
+                    as.success();
+                }
+            }
+        ) );
+
         it ( 'should unlock', $as_test( ( as ) => {
             key_face.unlock( as, secret_key );
         } ) );
@@ -499,6 +510,26 @@ module.exports = function( describe, it, vars, storage ) {
                             'CBC'
                         );
                     } );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'should check for "encrypt" bit', $as_test(
+            ( as ) => {
+                key_face.extKeyInfo( as, `aes128toexp-${run_id}` );
+
+                as.add( ( as, { id } ) => {
+                    key_face.encryptedKey(
+                        as,
+                        id,
+                        id,
+                        'CBC'
+                    );
                 } );
             },
             ( as, err ) => {
