@@ -11,6 +11,10 @@ const DataService = require( '../DataService' );
 const KeyFace = require( '../KeyFace' );
 const DataFace = require( '../DataFace' );
 
+require( 'futoin-invoker/SpecTools' ).on( 'error', function() {
+    console.log( arguments );
+} );
+
 module.exports = function( describe, it, vars, storage ) {
     const ccm = vars.ccm;
     const run_id = UUIDTool.genB64();
@@ -82,6 +86,17 @@ module.exports = function( describe, it, vars, storage ) {
                 'AES',
                 { bits: 256 }
             );
+
+            as.add( ( as, id ) => key_face.keyInfo( as, id ) );
+            as.add( ( as, info ) => {
+                expect( info.ext_id ).equal( `aes256-${run_id}` );
+                expect( info.params.bits ).equal( 256 );
+                expect( info.type ).equal( 'AES' );
+                expect( info.usage ).to.be.eql( [ 'temp' ] );
+                expect( info.used_times ).equal( 0 );
+                expect( info.used_bytes ).equal( 0 );
+                expect( info.sig_failures ).equal( 0 );
+            } );
         } ) );
 
         it ( 'should generate RSA keys', $as_test( ( as ) => {
@@ -188,7 +203,7 @@ module.exports = function( describe, it, vars, storage ) {
             ( as ) => {
                 key_face.injectKey(
                     as,
-                    `aes128inject-${run_id}`,
+                    `aes128inject2-${run_id}`,
                     [ 'shared' ],
                     'AES',
                     128,
@@ -231,11 +246,325 @@ module.exports = function( describe, it, vars, storage ) {
             } );
         } ) );
 
+        it ( 'should fail on invalid inject', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `rsa1024enc-${run_id}`,
+                    [ 'encrypt' ],
+                    'RSA',
+                    1024
+                );
+                as.add( ( as, kek_id ) => {
+                    key_face.injectEncryptedKey(
+                        as,
+                        `rsa1024enckey-${run_id}`,
+                        [ 'shared' ],
+                        'AES',
+                        128,
+                        Buffer.from( '6d251e6944b051e04eaa6fb4dbf78465881572c3a96a612c111055707bd7614e00000000000000000000000000000000', 'hex' ),
+                        kek_id,
+                        'CBC'
+                    );
+                } );
+            },
+            ( as, err ) => {
+                if ( err.startsWith( 'InvalidKey' ) ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        //=====================
+        it ( 'should list & wipe keys', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `aes128-${run_id}`,
+                [ 'encrypt', 'sign' ],
+                'AES',
+                128
+            );
+
+            as.add( ( as, id ) => {
+                key_face.listKeys( as );
+                as.add( ( as, keys ) => expect( keys ).to.include( id ) );
+
+                key_face.wipeKey( as, id );
+
+                key_face.listKeys( as );
+                as.add( ( as, keys ) => expect( keys ).not.to.include( id ) );
+            } );
+        } ) );
+
+        //=====================
+        it ( 'should derive keys', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `aes128bdk-${run_id}`,
+                [ 'derive' ],
+                'AES',
+                128
+            );
+
+            as.add( ( as, id ) => {
+                key_face.deriveKey(
+                    as,
+                    `aes128derived-${run_id}`,
+                    [ 'encrypt', 'sign', 'temp' ],
+                    'AES',
+                    128,
+                    id,
+                    'HKDF',
+                    'SHA-256',
+                    Buffer.from( '12345678' ),
+                    { info: 'INFO' }
+                );
+            } );
+        } ) );
+
+        it ( 'should check base for mismatch', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `aes128bdk2-${run_id}`,
+                    [ 'derive' ],
+                    'AES',
+                    128
+                );
+
+                as.add( ( as, id ) => {
+                    key_face.deriveKey(
+                        as,
+                        `aes128derived-${run_id}`,
+                        [ 'encrypt', 'sign', 'temp' ],
+                        'AES',
+                        128,
+                        id,
+                        'HKDF',
+                        'SHA-256',
+                        Buffer.from( '12345678' ),
+                        { info: 'INFO' }
+                    );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'OrigMismatch' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'should check "derive" bit', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `aes128nonbdk-${run_id}`,
+                    [ 'encrypt' ],
+                    'AES',
+                    128
+                );
+
+                as.add( ( as, id ) => {
+                    key_face.deriveKey(
+                        as,
+                        `aes128derivedfail-${run_id}`,
+                        [ 'encrypt', 'sign', 'temp' ],
+                        'AES',
+                        128,
+                        id,
+                        'HKDF',
+                        'SHA-256',
+                        Buffer.from( '12345678' ),
+                        { info: 'INFO' }
+                    );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'should fail on invalid KDF', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `aes128bdk-${run_id}`,
+                    [ 'derive' ],
+                    'AES',
+                    128
+                );
+
+                as.add( ( as, id ) => {
+                    key_face.deriveKey(
+                        as,
+                        `aes128invkdf-${run_id}`,
+                        [ 'encrypt', 'sign', 'temp' ],
+                        'AES',
+                        128,
+                        id,
+                        'HKDFabc',
+                        'SHA-256',
+                        Buffer.from( '12345678' ),
+                        { info: 'INFO' }
+                    );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'UnsupportedDerivation' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+
+        //=====================
+        it ( 'should expose encrypted key', $as_test( ( as ) => {
+            key_face.extKeyInfo( as, `aes128kek-${run_id}` );
+
+            as.add( ( as, kek_info ) => {
+                key_face.generateKey(
+                    as,
+                    `aes128toexp-${run_id}`,
+                    [ 'shared' ],
+                    'AES',
+                    128
+                );
+
+                as.add( ( as, id ) => {
+                    key_face.encryptedKey(
+                        as,
+                        id,
+                        kek_info.id,
+                        'CBC'
+                    );
+                } );
+            } );
+        } ) );
+
+        it ( 'should expose encrypted key (RSA)', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `rsa1024kek-${run_id}`,
+                [ 'encrypt', 'sign' ],
+                'RSA',
+                1024
+            );
+
+            as.add( ( as, id ) => {
+                key_face.publicKey(
+                    as,
+                    id
+                );
+            } );
+
+            as.add( ( as, kek ) => {
+                key_face.generateKey(
+                    as,
+                    `aes128toexp-${run_id}`,
+                    [ 'shared' ],
+                    'AES',
+                    128
+                );
+
+                as.add( ( as, id ) => {
+                    key_face.pubEncryptedKey(
+                        as,
+                        id,
+                        kek
+                    );
+                } );
+            } );
+        } ) );
+
+        it ( 'should check for "shared" bit', $as_test(
+            ( as ) => {
+                key_face.extKeyInfo( as, `aes128kek-${run_id}` );
+
+                as.add( ( as, kek_info ) => {
+                    key_face.generateKey(
+                        as,
+                        `aes128nottoexp-${run_id}`,
+                        [ 'encrypt' ],
+                        'AES',
+                        128
+                    );
+
+                    as.add( ( as, id ) => {
+                        key_face.encryptedKey(
+                            as,
+                            id,
+                            kek_info.id,
+                            'CBC'
+                        );
+                    } );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'should forbid public key for symmetric keys', $as_test(
+            ( as ) => {
+                key_face.extKeyInfo( as, `aes128kek-${run_id}` );
+
+                as.add( ( as, { id } ) => {
+                    key_face.publicKey(
+                        as,
+                        id
+                    );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'should forbid public key encryption for symmetric keys', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `aes128toexp-${run_id}`,
+                    [ 'shared' ],
+                    'AES',
+                    128
+                );
+
+                as.add( ( as, id ) => {
+                    key_face.pubEncryptedKey(
+                        as,
+                        id,
+                        {
+                            type: 'AES',
+                            data: Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' ),
+                        }
+                    );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
         //=====================
         it ( 'should lock', $as_test( ( as ) => {
+            as.add( ( as ) => expect( storage.isLocked() ).to.be.false );
+
             key_face.lock( as );
 
+            as.add( ( as ) => expect( storage.isLocked() ).to.be.true );
+
             key_face.unlock( as, secret_key );
+
+            as.add( ( as ) => expect( storage.isLocked() ).to.be.false );
         } ) );
     } );
 

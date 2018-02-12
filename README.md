@@ -457,6 +457,11 @@ Encrypted secret storage base
 Assume there is
 
 **Kind**: global class  
+
+* [EncryptedStorage](#EncryptedStorage)
+    * [.setStorageSecret(as, secret, cipher_opts, kdf_opts)](#EncryptedStorage+setStorageSecret)
+    * [.isLocked()](#EncryptedStorage+isLocked) ⇒ <code>boolean</code>
+
 <a name="EncryptedStorage+setStorageSecret"></a>
 
 ### encryptedStorage.setStorageSecret(as, secret, cipher_opts, kdf_opts)
@@ -479,6 +484,13 @@ Configure common storage secret which is used to encrypt keys
 | kdf_opts.info | <code>string</code> | <code>&quot;KEK&quot;</code> | info parameter for HKDF |
 | kdf_opts.rounds | <code>string</code> | <code>1000</code> | rounds for PBKDF2 |
 
+<a name="EncryptedStorage+isLocked"></a>
+
+### encryptedStorage.isLocked() ⇒ <code>boolean</code>
+Check if storage is locked
+
+**Kind**: instance method of [<code>EncryptedStorage</code>](#EncryptedStorage)  
+**Returns**: <code>boolean</code> - true, if locked  
 <a name="KeyInfo"></a>
 
 ## KeyInfo

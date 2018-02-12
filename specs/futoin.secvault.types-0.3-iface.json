@@ -1,6 +1,6 @@
 {
   "iface": "futoin.secvault.types",
-  "version": "0.2",
+  "version": "0.3",
   "ftn3rev": "1.9",
   "imports": [
     "futoin.types:1.0"
@@ -65,13 +65,13 @@
     "PublicKey": {
       "type": "map",
       "fields": {
-        "key_type": "KeyType",
+        "type": "KeyType",
         "data": "PublicKeyData"
       }
     },
     "HashType": {
       "type": "string",
-      "regex": "^[a-Z0-9][a-Z0-9-]*[a-Z0-9]$",
+      "regex": "^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$",
       "maxlen": 16
     },
     "CipherMode": {

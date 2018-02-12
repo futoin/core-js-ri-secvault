@@ -21,6 +21,7 @@
 
 const UUIDTool = require( 'futoin-uuid' );
 const _isEqual = require( 'lodash/isEqual' );
+const moment = require( 'moment' );
 
 const BaseService = require( './lib/BaseService' );
 const KeyFace = require( './KeyFace' );
@@ -52,7 +53,7 @@ class KeyService extends BaseService {
         as.add( as => reqinfo.result( true ) );
     }
 
-    _newKey( as, reqinfo, gen_cb, inject=false ) {
+    _newKey( as, reqinfo, { inject = false, base_key = null }, gen_cb ) {
         const { ext_id, usage, key_type, gen_params } = reqinfo.params();
         const storage = this._storage;
         const usage_set = new Set( usage );
@@ -76,6 +77,10 @@ class KeyService extends BaseService {
             info.params = { curve : gen_params };
         }
 
+        if ( base_key ) {
+            info.params.base_key = base_key;
+        }
+
         let vp;
 
         try {
@@ -86,32 +91,42 @@ class KeyService extends BaseService {
 
         as.add(
             ( as ) => {
+                if ( inject ) {
+                    as.add( ( as ) => gen_cb( as, key_type, info.params ) );
+                    as.add( ( as, key ) => {
+                        info.raw = key;
+                    } );
+                }
+
                 // Avoid resources spent on generation, if already exists
-                storage.loadExt( as, ext_id, false );
+                storage.loadExt( as, ext_id, inject );
             },
             ( as, err ) => {
                 if ( err !== 'UnknownKeyID' ) {
                     return;
                 }
 
-                as.add( ( as ) => gen_cb( as, key_type, info.params ) );
-                as.add( ( as, key ) => {
-                    as.add(
-                        ( as ) => vp.validateKey( as, key ),
-                        ( as, err ) => as.error( 'InvalidKey', as.state.error_info )
-                    );
-                    as.add(
-                        ( as ) => {
-                            info.raw = key;
-                            storage.save( as, info );
-                        },
-                        ( as, err ) => {
-                            if ( err === 'Duplicate' ) {
-                                storage.loadExt( as, ext_id, false );
-                            }
+                if ( !info.raw ) {
+                    as.add( ( as ) => gen_cb( as, key_type, info.params ) );
+                    as.add( ( as, key ) => {
+                        info.raw = key;
+                    } );
+                }
+
+                as.add(
+                    ( as ) => vp.validateKey( as, info.raw ),
+                    ( as, err ) => as.error( 'InvalidKey', as.state.error_info )
+                );
+                as.add(
+                    ( as ) => {
+                        storage.save( as, info );
+                    },
+                    ( as, err ) => {
+                        if ( err === 'Duplicate' ) {
+                            storage.loadExt( as, ext_id, inject );
                         }
-                    );
-                } );
+                    }
+                );
             }
         );
 
@@ -133,20 +148,20 @@ class KeyService extends BaseService {
     }
 
     generateKey( as, reqinfo ) {
-        this._newKey( as, reqinfo, ( as, key_type, options ) => {
+        this._newKey( as, reqinfo, {}, ( as, key_type, options ) => {
             const vp = VaultPlugin.getPlugin( key_type );
             vp.generate( as, options );
         } );
     }
 
     injectKey( as, reqinfo ) {
-        this._newKey( as, reqinfo, ( as ) => {
+        this._newKey( as, reqinfo, { inject: true }, ( as ) => {
             as.success( reqinfo.params().data );
         } );
     }
 
     injectEncryptedKey( as, reqinfo ) {
-        this._newKey( as, reqinfo, ( as ) => {
+        this._newKey( as, reqinfo, { inject: true }, ( as ) => {
             const { data, enc_key, mode } = reqinfo.params();
             this._loadCryptKey( as, enc_key );
 
@@ -161,7 +176,7 @@ class KeyService extends BaseService {
                         this._storage.updateUsage( as, enc_key_info.uuidb64, {
                             failures: 1,
                         } );
-                        as.add( ( as ) => as.error( err ) );
+                        as.add( ( as ) => as.error( 'InvalidKey' ) );
                     }
                 );
             } );
@@ -169,7 +184,9 @@ class KeyService extends BaseService {
     }
 
     deriveKey( as, reqinfo ) {
-        this._newKey( as, reqinfo, ( as, key_type ) => {
+        const { base_key } = reqinfo.params();
+
+        this._newKey( as, reqinfo, { base_key }, ( as, key_type ) => {
             const { base_key, kdf, hash, salt, other } = reqinfo.params();
 
             const vp = VaultPlugin.getPlugin( key_type );
@@ -197,6 +214,7 @@ class KeyService extends BaseService {
 
     wipeKey( as, reqinfo ) {
         this._storage.remove( as, reqinfo.params().id );
+        as.add( ( as ) => reqinfo.result( true ) );
     }
 
     _exposeCommon( as, reqinfo, out_cb ) {
@@ -223,7 +241,7 @@ class KeyService extends BaseService {
 
             this._loadCryptKey( as, enc_key );
             as.add( ( as, enc_key_info ) => {
-                const vp = VaultPlugin.get( enc_key.type );
+                const vp = VaultPlugin.getPlugin( enc_key_info.type );
                 const raw = info.raw;
 
                 this._storage.updateUsage( as, enc_key_info.uuidb64, {
@@ -239,16 +257,16 @@ class KeyService extends BaseService {
 
     pubEncryptedKey( as, reqinfo ) {
         this._exposeCommon( as, reqinfo, ( as, info ) => {
-            const { pubkey, key_type } = reqinfo.params();
+            const { pubkey : { type, data } } = reqinfo.params();
 
-            const vp = VaultPlugin.get( key_type );
+            const vp = VaultPlugin.getPlugin( type );
 
             if ( !vp.isAsymetric() ) {
                 as.error( 'NotApplicable' );
             }
 
-            vp.encrypt( as, pubkey, info.raw );
-            as.add( ( as, data ) => reqinfo.result( data ) );
+            vp.encrypt( as, data, info.raw );
+            as.add( ( as, enckey ) => reqinfo.result( enckey ) );
         } );
     }
 
@@ -256,42 +274,57 @@ class KeyService extends BaseService {
         this._loadCryptKey( as, reqinfo.params().id );
 
         as.add( ( as, info ) => {
-            const vp = VaultPlugin.get( info.type );
+            const { type, raw } = info;
+            const vp = VaultPlugin.getPlugin( type );
 
             if ( !vp.isAsymetric() ) {
                 as.error( 'NotApplicable' );
             }
 
-            vp.pubkey( as, info.raw );
+            vp.pubkey( as, raw );
+
+            as.add( ( as, data ) => reqinfo.result( {
+                type,
+                data,
+            } ) );
+        } );
+    }
+
+    _keyInfoCommon( as, info ) {
+        const usage = [];
+
+        for ( let u of [ 'encrypt', 'sign', 'derive', 'shared', 'temp' ] ) {
+            if ( info[`u_${u}`] ) {
+                usage.push( u );
+            }
+        }
+
+        as.success( {
+            id: info.uuidb64,
+            ext_id: info.ext_id,
+            usage,
+            type: info.type,
+            params: info.params,
+            created: moment.utc( info.created ).format(),
+            used_times: info.stat_times,
+            used_bytes: info.stat_bytes,
+            sig_failures: info.stat_failures,
         } );
     }
 
     keyInfo( as, reqinfo ) {
         this._storage.load( as, reqinfo.params().id, false );
-
-        as.add( ( as, info ) => {
-            const usage = [];
-
-            for ( let u of [ 'encrypt', 'sign', 'derive', 'shared', 'temp' ] ) {
-                if ( info[`u_${u}`] ) {
-                    usage.push( u );
-                }
-            }
-
-            as.success( {
-                id : info.uuidb64,
-                type: info.type,
-                params: info.params,
-                created: info.created,
-                used_times: info.stat_times,
-                used_bytes: info.stat_bytes,
-                sig_failures: info.stat_failures,
-            } );
-        } );
+        as.add( this._keyInfoCommon );
     }
 
-    listKeys( as ) {
+    extKeyInfo( as, reqinfo ) {
+        this._storage.loadExt( as, reqinfo.params().ext_id, false );
+        as.add( this._keyInfoCommon );
+    }
+
+    listKeys( as, reqinfo ) {
         this._storage.list( as );
+        as.add( ( as, res ) => reqinfo.result( res ) );
     }
 
     /**
