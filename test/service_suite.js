@@ -658,7 +658,7 @@ module.exports = function( describe, it, vars, storage ) {
         it ( 'sign & verify RSA', $as_test( ( as ) => {
             key_face.generateKey(
                 as,
-                `rsa1024sign-`,
+                `rsa1024sign-${run_id}`,
                 [ 'sign' ],
                 'RSA',
                 1024
@@ -701,6 +701,164 @@ module.exports = function( describe, it, vars, storage ) {
                 if ( err === 'InvalidData' ) {
                     as.success();
                 }
-            } ) );
+            }
+        ) );
+
+        it ( 'sign & verify RSA fail', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `rsa1024sign-${run_id}`,
+                    [ 'sign' ],
+                    'RSA',
+                    1024
+                );
+
+                as.add( ( as, id ) => {
+                    const data = Buffer.from( 'Some Test Data' );
+                    data_face.verify( as, id, data, data, 'SHA-256' );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'InvalidSignature' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'obey "encrypt" bit on encrypt', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `aes192fakeenc-${run_id}`,
+                    [ 'sign' ],
+                    'AES',
+                    192
+                );
+
+                as.add( ( as, id ) => {
+                    const data = Buffer.from( 'Some Test Data' );
+                    data_face.encrypt( as, id, data );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'obey "encrypt" bit on decrypt', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `aes192fakeenc-${run_id}`,
+                    [ 'sign' ],
+                    'AES',
+                    192
+                );
+
+                as.add( ( as, id ) => {
+                    const data = Buffer.from( 'Some Test Data' );
+                    data_face.encrypt( as, id, data );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'obey "sign" on sign', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `aes192fakesign-${run_id}`,
+                    [ 'encrypt' ],
+                    'AES',
+                    192
+                );
+
+                as.add( ( as, id ) => {
+                    const data = Buffer.from( 'Some Test Data' );
+                    data_face.sign( as, id, data, 'SHA-256' );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'obey "sign" on verify', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `aes192fakesign-${run_id}`,
+                    [ 'encrypt' ],
+                    'AES',
+                    192
+                );
+
+                as.add( ( as, id ) => {
+                    const data = Buffer.from( 'Some Test Data' );
+                    data_face.verify( as, id, data, data, 'SHA-256' );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'obey failure limit', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `aes192fakesign-${run_id}`,
+                    [ 'encrypt' ],
+                    'AES',
+                    192
+                );
+
+                as.add( ( as, id ) => {
+                    const data = Buffer.from( 'Some Test Data' );
+                    data_face.verify( as, id, data, data, 'SHA-256' );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'NotApplicable' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'obey failure limit', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `rsa1024fail-${run_id}`,
+                    [ 'encrypt', 'sign' ],
+                    'RSA',
+                    1024
+                );
+
+                as.add( ( as, id ) => {
+                    storage.updateUsage( as, id, { failures: 1e4 + 1 } );
+
+                    const data = Buffer.from( 'Some Test Data' );
+                    data_face.verify( as, id, data, data, 'SHA-256' );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'SecurityError' ) {
+                    expect( as.state.error_info ).equal( 'Failure limit has reached' );
+                    as.success();
+                }
+            }
+        ) );
     } );
 };
