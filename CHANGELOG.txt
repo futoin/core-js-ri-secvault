@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 0.9.1 (2018-02-13) ===
 FIXED: to check failure limit on sign/verify
 
 === 0.9.0 (2018-02-12) ===
