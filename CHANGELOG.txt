@@ -1,3 +1,5 @@
+=== (next) ===
+CHANGED: upgraded dependency versions
 
 === 0.9.1 (2018-02-13) ===
 FIXED: to check failure limit on sign/verify
