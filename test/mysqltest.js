@@ -12,7 +12,7 @@ const DB_PORT = process.env.MYSQL_PORT || '3309';
 
 describe( 'MySQL', function() {
     before( function( done ) {
-        this.timeout( 30e3 );
+        this.timeout( 60e3 );
         const ccm = new AdvancedCCM();
 
         $as().add(
