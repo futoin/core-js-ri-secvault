@@ -30,6 +30,11 @@ describe( 'MySQL', function() {
                     ccm.db().query( as, 'SET GLOBAL sync_binlog=0' );
                 } );
                 as.add( ( as ) => {
+                    const flyway_locations = [
+                        `filesystem:${__dirname}/../sql/mysql`,
+                        `filesystem:${__dirname}/../node_modules/futoin-eventstream/sql/active/mysql`,
+                    ].join( ',' );
+
                     let res;
 
                     res = child_process.spawnSync(

@@ -38,6 +38,11 @@ describe( 'SQLite', function() {
                 as.add( ( as ) => {
                     ccm.close();
 
+                    const flyway_locations = [
+                        `filesystem:${__dirname}/../sql/sqlite`,
+                        `filesystem:${__dirname}/../node_modules/futoin-eventstream/sql/active/sqlite`,
+                    ].join( ',' );
+
                     let res;
 
                     res = child_process.spawnSync(
@@ -48,7 +53,7 @@ describe( 'SQLite', function() {
                             `-url=jdbc:sqlite:${secvault_db}`,
                             '-user=fake',
                             '-password=fake',
-                            `-locations=filesystem:${__dirname}/../sql/sqlite,filesystem:${__dirname}/../node_modules/futoin-eventstream/sql/active/sqlite`,
+                            `-locations=${flyway_locations}`,
                         ]
                     );
 

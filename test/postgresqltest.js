@@ -30,6 +30,11 @@ describe( 'PostgreSQL', function() {
                     ccm.db().query( as, 'CREATE DATABASE secvault' );
                 } );
                 as.add( ( as ) => {
+                    const flyway_locations = [
+                        `filesystem:${__dirname}/../sql/postgresql`,
+                        `filesystem:${__dirname}/../node_modules/futoin-eventstream/sql/active/postgresql`,
+                    ].join( ',' );
+
                     let res;
 
                     res = child_process.spawnSync(
