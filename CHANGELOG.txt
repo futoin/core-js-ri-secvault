@@ -1,4 +1,5 @@
 === (next) ===
+CHANGED: to use FTN3.1 specs from invoker
 FIXED: updated specs symlinks
 FIXED: to add specs into release package
 
