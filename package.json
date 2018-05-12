@@ -6,8 +6,10 @@
   "files": [
     "dist",
     "lib",
+    "specs",
     "*Face.js",
-    "*Service.js"
+    "*Service.js",
+    "futoin.json"
   ],
   "engines": {
     "node": ">=6"

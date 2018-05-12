@@ -1,5 +1,6 @@
 === (next) ===
 FIXED: updated specs symlinks
+FIXED: to add specs into release package
 
 === 0.9.3 (2018-05-11) ===
 CHANGED: to use FTN13 v1.0 specs instead of v0.3
