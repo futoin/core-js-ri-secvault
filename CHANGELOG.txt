@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 0.9.5 (2018-05-17) ===
 NEW: plain "Password" plugin support
 NEW: "HMAC" plugin support
 
