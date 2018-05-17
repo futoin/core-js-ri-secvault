@@ -89,6 +89,9 @@ $ yarn add futoin-secvault --save
 <dt><a href="#HKDFPlugin">HKDFPlugin</a></dt>
 <dd><p>HKDF plugin</p>
 </dd>
+<dt><a href="#HMACPlugin">HMACPlugin</a></dt>
+<dd><p>HMAC plugin</p>
+</dd>
 <dt><a href="#PasswordPlugin">PasswordPlugin</a></dt>
 <dd><p>Password plugin</p>
 <p>Allows passwords from 4 to 255 unicode characters in length.
@@ -250,6 +253,18 @@ HKDF plugin
 Register this plugin
 
 **Kind**: static method of [<code>HKDFPlugin</code>](#HKDFPlugin)  
+<a name="HMACPlugin"></a>
+
+## HMACPlugin
+HMAC plugin
+
+**Kind**: global class  
+<a name="HMACPlugin.register"></a>
+
+### HMACPlugin.register()
+Register this plugin
+
+**Kind**: static method of [<code>HMACPlugin</code>](#HMACPlugin)  
 <a name="PasswordPlugin"></a>
 
 ## PasswordPlugin

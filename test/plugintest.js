@@ -601,4 +601,109 @@ dQIDAQAB
             } );
         } ) );
     } );
+
+    describe( 'HMAC', function() {
+        it( 'generate()', $as_test( ( as ) => {
+            const p = VaultPlugin.getPlugin( 'HMAC' );
+            //--
+
+            p.generate( as );
+            as.add( ( as, key ) => {
+                expect( Buffer.isBuffer( key ) ).to.be.true;
+                expect( key.length ).to.equal( 32 );
+            } );
+
+
+            p.generate( as, { bits: 384 } );
+            as.add( ( as, key ) => {
+                expect( key.length ).to.equal( 48 );
+            } );
+
+            p.generate( as, { bits: 512 } );
+            as.add( ( as, key ) => {
+                expect( key.length ).to.equal( 64 );
+            } );
+
+            as.forEach( [ 255, 257, 520 ], ( as, _k, v ) => {
+                as.add(
+                    ( as ) => {
+                        p.generate( as, { bits: v } );
+                        as.add( ( as ) => as.error( 'Fail' ) );
+                    },
+                    ( as, err ) => {
+                        if ( err === 'NotSupported' ) {
+                            as.success();
+                        }
+                    }
+                );
+            } );
+        } ) );
+
+        it( 'sign()/verify()', $as_test( ( as ) => {
+            const p = VaultPlugin.getPlugin( 'HMAC' );
+            //--
+
+            p.random( as, 128 );
+            as.add( ( as, buf ) => {
+                p.generate( as );
+                as.add( ( as, key ) => {
+                    as.forEach( [
+                        'MD5',
+                        'SHA-224',
+                        'SHA256',
+                        'sha384',
+                        'ShA-512',
+                    ], ( as, _k, hash ) => {
+                        p.sign( as, key, buf, { hash } );
+                        as.add( ( as, sig ) => {
+                            p.verify( as, key, buf, sig, { hash } );
+
+                            as.add(
+                                ( as ) => {
+                                    sig[0] = ~sig[0];
+                                    p.verify( as, key, buf, sig, { hash } );
+                                    as.add( ( as ) => as.error( 'Fail' ) );
+                                },
+                                ( as, err ) => {
+                                    if ( err === 'InvalidSignature' ) {
+                                        as.success();
+                                    }
+                                }
+                            );
+                        } );
+                    } );
+
+                    as.forEach( [
+                        'NOTSUPPORTED',
+                        'md_gost12_256',
+                        'md_gost12_512',
+                    ], ( as, _k, hash ) => {
+                        as.add(
+                            ( as ) => {
+                                p.sign( as, key, buf, { hash } );
+                                as.add( ( as ) => as.error( 'Fail' ) );
+                            },
+                            ( as, err ) => {
+                                if ( err === 'NotSupported' ) {
+                                    as.success();
+                                }
+                            }
+                        );
+                    } );
+
+                    as.add(
+                        ( as ) => {
+                            p.verify( as, key, buf, Buffer.from( 'INVALID' ), { hash: 'sha256' } );
+                            as.add( ( as ) => as.error( 'Fail' ) );
+                        },
+                        ( as, err ) => {
+                            if ( err === 'InvalidSignature' ) {
+                                as.success();
+                            }
+                        }
+                    );
+                } );
+            } );
+        } ) );
+    } );
 } );

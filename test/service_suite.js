@@ -138,6 +138,24 @@ module.exports = function( describe, it, vars, storage ) {
             );
         } ) );
 
+        it ( 'should generate HMAC keys', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `hmac256-${run_id}`,
+                [ 'shared', 'sign' ],
+                'HMAC',
+                256
+            );
+
+            key_face.generateKey(
+                as,
+                `hmac512-${run_id}`,
+                [ 'shared', 'sign' ],
+                'HMAC',
+                512
+            );
+        } ) );
+
         it ( 'should ensure key is generated in dup', $as_test( ( as ) => {
             const p = as.parallel();
             p.add( as => {
@@ -781,6 +799,51 @@ module.exports = function( describe, it, vars, storage ) {
                     const data = Buffer.from( '' );
                     const sig = Buffer.from( '1234567890123457' );
                     data_face.verify( as, id, data, sig, 'NA' );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'InvalidSignature' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'sign & verify HMAC', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `hmac256sign-${run_id}`,
+                [ 'sign' ],
+                'HMAC',
+                256
+            );
+
+            as.add( ( as, id ) => {
+                const data = Buffer.from( 'Some Test Data' );
+                data_face.sign( as, id, data, 'SHA-256' );
+
+                as.add( ( as, sig ) => {
+                    data_face.verify( as, id, data, sig, 'SHA-256' );
+                } );
+
+                as.add( ( as, res ) => {
+                    expect( res ).to.be.true;
+                } );
+            } );
+        } ) );
+
+        it ( 'sign & verify RSA fail', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `hmac256sign-${run_id}`,
+                    [ 'sign' ],
+                    'HMAC',
+                    256
+                );
+
+                as.add( ( as, id ) => {
+                    const data = Buffer.from( 'Some Test Data' );
+                    data_face.verify( as, id, data, data, 'SHA-256' );
                 } );
             },
             ( as, err ) => {
