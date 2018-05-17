@@ -120,6 +120,24 @@ module.exports = function( describe, it, vars, storage ) {
             );
         } ) );
 
+        it ( 'should generate Passwords', $as_test( ( as ) => {
+            key_face.generateKey(
+                as,
+                `pwd32-${run_id}`,
+                [ 'shared', 'sign' ],
+                'Password',
+                32 * 8
+            );
+
+            key_face.generateKey(
+                as,
+                `pwd255-${run_id}`,
+                [ 'shared', 'sign' ],
+                'Password',
+                255 * 8
+            );
+        } ) );
+
         it ( 'should ensure key is generated in dup', $as_test( ( as ) => {
             const p = as.parallel();
             p.add( as => {
@@ -717,6 +735,52 @@ module.exports = function( describe, it, vars, storage ) {
                 as.add( ( as, id ) => {
                     const data = Buffer.from( 'Some Test Data' );
                     data_face.verify( as, id, data, data, 'SHA-256' );
+                } );
+            },
+            ( as, err ) => {
+                if ( err === 'InvalidSignature' ) {
+                    as.success();
+                }
+            }
+        ) );
+
+        it ( 'verify Password', $as_test( ( as ) => {
+            const key = Buffer.from( '1234567890123456' );
+            key_face.injectKey(
+                as,
+                `pwd16-${run_id}`,
+                [ 'sign' ],
+                'Password',
+                16 * 8,
+                key
+            );
+
+            as.add( ( as, id ) => {
+                const data = Buffer.from( '' );
+                data_face.verify( as, id, data, key, 'NA' );
+
+                as.add( ( as, res ) => {
+                    expect( res ).to.be.true;
+                } );
+            } );
+        } ) );
+
+        it ( 'verify Password fail', $as_test(
+            ( as ) => {
+                const key = Buffer.from( '1234567890123456' );
+                key_face.injectKey(
+                    as,
+                    `pwd16fail-${run_id}`,
+                    [ 'sign' ],
+                    'Password',
+                    16 * 8,
+                    key
+                );
+
+                as.add( ( as, id ) => {
+                    const data = Buffer.from( '' );
+                    const sig = Buffer.from( '1234567890123457' );
+                    data_face.verify( as, id, data, sig, 'NA' );
                 } );
             },
             ( as, err ) => {

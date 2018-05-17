@@ -2,6 +2,7 @@
 
 const expect = require( 'chai' ).expect;
 const $as = require( 'futoin-asyncsteps' );
+const $as_test = require( 'futoin-asyncsteps/testcase' );
 
 const { VaultPlugin } = require( '../lib/main' );
 
@@ -527,5 +528,77 @@ dQIDAQAB
             as.add( ( as ) => done() );
             as.execute();
         } );
+    } );
+
+    describe( 'Password', function() {
+        it( 'generate()', $as_test( ( as ) => {
+            const p = VaultPlugin.getPlugin( 'Password' );
+            //--
+
+            p.generate( as );
+            as.add( ( as, key ) => {
+                expect( Buffer.isBuffer( key ) ).to.be.true;
+                expect( key.length ).to.equal( 16 );
+                expect( key.toString() ).to.match( /^[a-zA-Z0-9_-]+$/ );
+            } );
+
+
+            p.generate( as, { bits: 192 } );
+            as.add( ( as, key ) => {
+                expect( key.length ).to.equal( 24 );
+                expect( key.toString() ).to.match( /^[a-zA-Z0-9_-]+$/ );
+            } );
+
+            p.generate( as, { bits: 2040 } );
+            as.add( ( as, key ) => {
+                expect( key.toString().length ).to.equal( 255 );
+                expect( key.toString() ).to.match( /^[a-zA-Z0-9_-]+$/ );
+            } );
+
+            as.forEach( [ 33, 24, 2048 ], ( as, _k, v ) => {
+                as.add(
+                    ( as ) => {
+                        p.generate( as, { bits: v } );
+                        as.add( ( as ) => as.error( 'Fail' ) );
+                    },
+                    ( as, err ) => {
+                        if ( err === 'NotSupported' ) {
+                            as.success();
+                        }
+                    }
+                );
+            } );
+        } ) );
+
+        it( 'verify()', $as_test( ( as ) => {
+            const p = VaultPlugin.getPlugin( 'Password' );
+            //--
+
+            p.generate( as );
+            as.add( ( as, key ) => {
+                p.verify( as, key, undefined, key );
+                p.verify( as, key, undefined, Buffer.from( key ) );
+            } );
+
+            p.verify( as, Buffer.from( '123' ), undefined, Buffer.from( '123' ) );
+
+            as.forEach( {
+                123: '124',
+                234: '2345',
+                1234: '123',
+            }, ( as, k, v ) => {
+                as.add(
+                    ( as ) => {
+                        p.verify( as, Buffer.from( k ), undefined, Buffer.from( v ) );
+                        as.add( ( as ) => as.error( 'Fail' ) );
+                    },
+                    ( as, err ) => {
+                        if ( err === 'InvalidSignature' ) {
+                            as.success();
+                        }
+                    }
+                );
+            } );
+        } ) );
     } );
 } );

@@ -39,7 +39,7 @@ Features:
 
 Reference implementation of:
  
-* [FTN13: FutoIn Secure Vault](http://specs.futoin.org/draft/preview/ftn13_secure_vault.html)
+* [FTN13: FutoIn Secure Vault](https://specs.futoin.org/final/preview/ftn13_secure_vault.html)
 
 Author: [Andrey Galkin](mailto:andrey@futoin.org)
 
@@ -88,6 +88,12 @@ $ yarn add futoin-secvault --save
 </dd>
 <dt><a href="#HKDFPlugin">HKDFPlugin</a></dt>
 <dd><p>HKDF plugin</p>
+</dd>
+<dt><a href="#PasswordPlugin">PasswordPlugin</a></dt>
+<dd><p>Password plugin</p>
+<p>Allows passwords from 4 to 255 unicode characters in length.
+Supports custom characters set through options.chars.</p>
+<p>Supports secure password verification.</p>
 </dd>
 <dt><a href="#PBKDF2Plugin">PBKDF2Plugin</a></dt>
 <dd><p>PBKDF2 plugin</p>
@@ -244,6 +250,23 @@ HKDF plugin
 Register this plugin
 
 **Kind**: static method of [<code>HKDFPlugin</code>](#HKDFPlugin)  
+<a name="PasswordPlugin"></a>
+
+## PasswordPlugin
+Password plugin
+
+Allows passwords from 4 to 255 unicode characters in length.
+Supports custom characters set through options.chars.
+
+Supports secure password verification.
+
+**Kind**: global class  
+<a name="PasswordPlugin.register"></a>
+
+### PasswordPlugin.register()
+Register this plugin
+
+**Kind**: static method of [<code>PasswordPlugin</code>](#PasswordPlugin)  
 <a name="PBKDF2Plugin"></a>
 
 ## PBKDF2Plugin
