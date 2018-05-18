@@ -621,6 +621,21 @@ module.exports = function( describe, it, vars, storage ) {
             }
         ) );
 
+        it ( 'should list with prefix', $as_test( ( as ) => {
+            key_face.listKeys( as, 'aes' );
+
+            as.add( ( as, keys ) => {
+                expect( keys.length ).to.be.ok;
+
+                as.forEach( keys, ( as, _, key_id ) => {
+                    key_face.keyInfo( as, key_id );
+                    as.add( ( as, info ) => {
+                        expect( info.ext_id ).match( /^aes/ );
+                    } );
+                } );
+            } );
+        } ) );
+
         //=====================
         it ( 'should lock', $as_test( ( as ) => {
             as.add( ( as ) => expect( storage.isLocked() ).to.be.false );

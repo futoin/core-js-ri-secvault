@@ -1,4 +1,8 @@
 
+=== (next) ===
+NEW: external key ID prefix for key listing
+NEW: upgraded to FTN13 v1.1
+
 === 0.9.5 (2018-05-17) ===
 NEW: plain "Password" plugin support
 NEW: "HMAC" plugin support

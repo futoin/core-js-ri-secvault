@@ -336,7 +336,7 @@ class KeyService extends BaseService {
     }
 
     listKeys( as, reqinfo ) {
-        this._storage.list( as );
+        this._storage.list( as, reqinfo.params().ext_prefix );
         as.add( ( as, res ) => reqinfo.result( res ) );
     }
 
