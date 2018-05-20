@@ -95,13 +95,14 @@ module.exports = function( describe, it, vars, storage ) {
                 `aes256-${run_id}`,
                 [ 'temp' ],
                 'AES',
-                { bits: 256 }
+                { bits: 256, some_test: '123rest' }
             );
 
             as.add( ( as, id ) => key_face.keyInfo( as, id ) );
             as.add( ( as, info ) => {
                 expect( info.ext_id ).equal( `aes256-${run_id}` );
                 expect( info.params.bits ).equal( 256 );
+                expect( info.params.some_test ).equal( '123rest' );
                 expect( info.type ).equal( 'AES' );
                 expect( info.usage ).to.be.eql( [ 'temp' ] );
                 expect( info.used_times ).equal( 0 );
@@ -359,13 +360,17 @@ module.exports = function( describe, it, vars, storage ) {
                     `aes128derived-${run_id}`,
                     [ 'encrypt', 'sign', 'temp' ],
                     'AES',
-                    128,
+                    { bits: 128, some_param: 'test123' },
                     id,
                     'HKDF',
                     'SHA-256',
                     Buffer.from( '12345678' ),
                     { info: 'INFO' }
                 );
+                key_face.extKeyInfo( as, `aes128derived-${run_id}` );
+                as.add( ( as, res ) => {
+                    expect( res.params.some_param ).equal( 'test123' );
+                } );
             } );
         } ) );
 

@@ -199,12 +199,12 @@ class KeyService extends BaseService {
     deriveKey( as, reqinfo ) {
         const { base_key } = reqinfo.params();
 
-        this._newKey( as, reqinfo, { base_key }, ( as, key_type ) => {
+        this._newKey( as, reqinfo, { base_key }, ( as, key_type, options ) => {
             const { base_key, kdf, hash, salt, other } = reqinfo.params();
 
             const vp = VaultPlugin.getPlugin( key_type );
-            const bits = other.bits || vp.defaultBits();
-            const options = Object.assign( { salt }, other );
+            const bits = options.bits || other.bits || vp.defaultBits();
+            const drv_opts = Object.assign( { salt }, options, other );
             let vp_kdf;
 
             try {
@@ -220,7 +220,7 @@ class KeyService extends BaseService {
                     as.error( 'NotApplicable' );
                 }
 
-                vp_kdf.derive( as, base_key_info.raw, bits, hash, options );
+                vp_kdf.derive( as, base_key_info.raw, bits, hash, drv_opts );
             } );
         } );
     }
