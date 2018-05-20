@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 0.9.7 (2018-05-20) ===
 FIXED: to use gen_params.bits for derivedKey()
 FIXED: to use UUID as IV for encryptedKey()
 
