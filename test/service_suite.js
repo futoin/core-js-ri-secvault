@@ -491,6 +491,12 @@ module.exports = function( describe, it, vars, storage ) {
                         kek_info.id,
                         'CBC'
                     );
+                    key_face.encryptedKey(
+                        as,
+                        id,
+                        kek_info.id,
+                        'GCM'
+                    );
                 } );
             } );
         } ) );

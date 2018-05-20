@@ -1,6 +1,7 @@
 
 === (next) ===
 FIXED: to use gen_params.bits for derivedKey()
+FIXED: to use UUID as IV for encryptedKey()
 
 === 0.9.6 (2018-05-18) ===
 NEW: external key ID prefix for key listing

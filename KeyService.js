@@ -256,13 +256,14 @@ class KeyService extends BaseService {
             as.add( ( as, enc_key_info ) => {
                 const vp = VaultPlugin.getPlugin( enc_key_info.type );
                 const raw = info.raw;
+                const iv = Buffer.from( info.uuidb64, 'base64' );
 
                 this._storage.updateUsage( as, enc_key_info.uuidb64, {
                     times: 1,
                     bytes: raw.length,
                 } );
 
-                vp.encrypt( as, enc_key_info.raw, raw, { mode } );
+                vp.encrypt( as, enc_key_info.raw, raw, { mode, iv, iv_length: 16 } );
                 as.add( ( as, data ) => reqinfo.result( data ) );
             } );
         } );
