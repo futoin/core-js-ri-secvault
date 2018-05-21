@@ -1,3 +1,5 @@
+=== (next) ===
+CHANGED: to use secure buffer comparison from SpecTools
 
 === 0.9.7 (2018-05-20) ===
 FIXED: to use gen_params.bits for derivedKey()
