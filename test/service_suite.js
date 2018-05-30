@@ -653,6 +653,54 @@ module.exports = function( describe, it, vars ) {
             } );
         } ) );
 
+        it ( 'add external statistics', $as_test(
+            ( as ) => {
+                key_face.generateKey(
+                    as,
+                    `statstest-${run_id}`,
+                    [],
+                    'AES',
+                    128
+                );
+
+                as.add( ( as, id ) => {
+                    key_face.keyInfo( as, id );
+                    as.add( ( as, ki ) => {
+                        expect( ki.times ).equal( 0 );
+                        expect( ki.bytes ).equal( 0 );
+                        expect( ki.failures ).equal( 0 );
+                    } );
+                    //
+                    key_face.addStats( as, id, 1, 2, 3 );
+                    key_face.keyInfo( as, id );
+                    as.add( ( as, ki ) => {
+                        expect( ki.times ).equal( 1 );
+                        expect( ki.bytes ).equal( 2 );
+                        expect( ki.failures ).equal( 3 );
+                    } );
+                    //
+                    key_face.addStats( as, id, 1, 10000, 0 );
+                    key_face.keyInfo( as, id );
+                    as.add( ( as, ki ) => {
+                        expect( ki.times ).equal( 2 );
+                        expect( ki.bytes ).equal( 10002 );
+                        expect( ki.failures ).equal( 3 );
+                    } );
+                } );
+            }
+        ) );
+
+        it ( 'detect unknown key on external statistics', $as_test(
+            ( as ) => {
+                key_face.addStats( as, '0123456789012345678912', 1, 2, 3 );
+            },
+            ( as, err ) => {
+                if ( err === 'UnknownKeyID' ) {
+                    as.success();
+                }
+            }
+        ) );
+
         //=====================
         it ( 'should lock', $as_test( ( as ) => {
             as.add( ( as ) => expect( storage.isLocked() ).to.be.false );

@@ -320,6 +320,10 @@ class KeyService extends BaseService {
             type: info.type,
             params: info.params,
             created: moment.utc( info.created ).format(),
+            times: info.stat_times,
+            bytes: info.stat_bytes,
+            failures: info.stat_failures,
+            // Deprecated
             used_times: info.stat_times,
             used_bytes: info.stat_bytes,
             sig_failures: info.stat_failures,
@@ -339,6 +343,16 @@ class KeyService extends BaseService {
     listKeys( as, reqinfo ) {
         this._storage.list( as, reqinfo.params().ext_prefix );
         as.add( ( as, res ) => reqinfo.result( res ) );
+    }
+
+    addStats( as, reqinfo ) {
+        const { id, times, bytes, failures } = reqinfo.params();
+        this._storage.updateUsage( as, id, {
+            times,
+            bytes,
+            failures,
+        } );
+        as.add( ( as ) => reqinfo.result( true ) );
     }
 
     /**
