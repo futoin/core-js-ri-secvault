@@ -15,11 +15,13 @@ require( 'futoin-invoker/SpecTools' ).on( 'error', function() {
     console.log( arguments );
 } );
 
-module.exports = function( describe, it, vars, storage ) {
+module.exports = function( describe, it, vars ) {
     const ccm = vars.ccm;
     const run_id = UUIDTool.genB64();
+    let storage;
 
     before( 'service', function( done ) {
+        storage = vars.storage;
         const executor = vars.executor = new Executor( ccm );
 
         executor.on( 'notExpected', function() {
@@ -105,6 +107,10 @@ module.exports = function( describe, it, vars, storage ) {
                 expect( info.params.some_test ).equal( '123rest' );
                 expect( info.type ).equal( 'AES' );
                 expect( info.usage ).to.be.eql( [ 'temp' ] );
+                expect( info.times ).equal( 0 );
+                expect( info.bytes ).equal( 0 );
+                expect( info.failures ).equal( 0 );
+                // deprecated
                 expect( info.used_times ).equal( 0 );
                 expect( info.used_bytes ).equal( 0 );
                 expect( info.sig_failures ).equal( 0 );

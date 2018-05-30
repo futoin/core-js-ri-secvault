@@ -9,6 +9,8 @@ const fs = require( 'fs' );
 const AdvancedCCM = require( 'futoin-invoker/AdvancedCCM' );
 const SQLStorage = require( '../lib/storage/SQLStorage' );
 
+const DBEvtServiceApp = require( 'futoin-eventstream/DBServiceApp' );
+
 describe( 'SQLite', function() {
     const secvault_db = `${__dirname}/secvault.db`;
 
@@ -76,34 +78,36 @@ describe( 'SQLite', function() {
     const vars = {
         as: null,
         ccm,
-        storage: new SQLStorage( ccm ),
+        storage: null,
     };
 
-    before( 'specific', function( done ) {
-        $as()
-            .add(
-                ( as ) => {
-                    DBAutoConfig( as, ccm, {
-                        secvault: {},
-                    }, {
-                        DB_SECVAULT_TYPE: 'sqlite',
-                        DB_SECVAULT_SOCKET: secvault_db,
-                    } );
-                    as.add( ( as ) => {
-                        const db = ccm.db( 'secvault' );
-                        db.query( as, 'PRAGMA synchronous = OFF' );
-                        db.query( as, 'PRAGMA journal_mode = MEMORY' );
-                    } );
-                },
-                ( as, err ) => {
-                    console.log( err );
-                    console.log( as.state.error_info );
-                    done( as.state.last_exception || 'Fail' );
-                }
-            )
-            .add( ( as ) => done() )
-            .execute();
-    } );
+
+    before( 'specific', $as.testcase( ( as ) => {
+        as.add( ( as ) => {
+            DBAutoConfig( as, ccm, {
+                secvault: {},
+            }, {
+                DB_SECVAULT_TYPE: 'sqlite',
+                DB_SECVAULT_SOCKET: secvault_db,
+            } );
+            as.add( ( as ) => {
+                ccm.alias( '#db.secvault', '#db.evt' );
+                new DBEvtServiceApp( as, {
+                    ccm,
+                } );
+            } );
+            as.add( ( as ) => {
+                const db = ccm.db( 'secvault' );
+                db.query( as, 'PRAGMA synchronous = OFF' );
+                db.query( as, 'PRAGMA journal_mode = MEMORY' );
+            } );
+        } );
+        as.add( ( as ) => {
+            ccm.alias( '#evtgen', '#secvault.evtgen' );
+            ccm.alias( '#evtpush', '#secvault.evtpush' );
+            vars.storage = new SQLStorage( ccm );
+        } );
+    } ) );
 
     after( 'specific', function() {
         ccm.close();

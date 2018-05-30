@@ -8,6 +8,8 @@ const integration_suite = require( './integrationsuite' );
 const AdvancedCCM = require( 'futoin-invoker/AdvancedCCM' );
 const SQLStorage = require( '../lib/storage/SQLStorage' );
 
+const DBEvtServiceApp = require( 'futoin-eventstream/DBServiceApp' );
+
 const DB_PORT = process.env.MYSQL_PORT || '3309';
 
 describe( 'MySQL', function() {
@@ -44,7 +46,7 @@ describe( 'MySQL', function() {
                             'migrate',
                             `-url=jdbc:mysql://127.0.0.1:${DB_PORT}/secvault`,
                             '-user=ftntest',
-                            `-locations=filesystem:${__dirname}/../sql/mysql`,
+                            `-locations=${flyway_locations}`,
                         ]
                     );
 
@@ -69,32 +71,33 @@ describe( 'MySQL', function() {
     const vars = {
         as: null,
         ccm,
-        storage: new SQLStorage( ccm ),
+        storage: null,
     };
 
-    before( 'specific', function( done ) {
-        $as()
-            .add(
-                ( as ) => {
-                    DBAutoConfig( as, ccm, {
-                        secvault: {},
-                    }, {
-                        DB_SECVAULT_TYPE: 'mysql',
-                        DB_SECVAULT_HOST: '127.0.0.1',
-                        DB_SECVAULT_PORT: DB_PORT,
-                        DB_SECVAULT_USER: 'ftntest',
-                        DB_SECVAULT_DB: 'secvault',
-                    } );
-                },
-                ( as, err ) => {
-                    console.log( err );
-                    console.log( as.state.error_info );
-                    done( as.state.last_exception || 'Fail' );
-                }
-            )
-            .add( ( as ) => done() )
-            .execute();
-    } );
+    before( 'specific', $as.testcase( ( as ) => {
+        as.add( ( as ) => {
+            DBAutoConfig( as, ccm, {
+                secvault: {},
+            }, {
+                DB_SECVAULT_TYPE: 'mysql',
+                DB_SECVAULT_HOST: '127.0.0.1',
+                DB_SECVAULT_PORT: DB_PORT,
+                DB_SECVAULT_USER: 'ftntest',
+                DB_SECVAULT_DB: 'secvault',
+            } );
+        } );
+        as.add( ( as ) => {
+            ccm.alias( '#db.secvault', '#db.evt' );
+            new DBEvtServiceApp( as, {
+                ccm,
+            } );
+        } );
+        as.add( ( as ) => {
+            ccm.alias( '#evtgen', '#secvault.evtgen' );
+            ccm.alias( '#evtpush', '#secvault.evtpush' );
+            vars.storage = new SQLStorage( ccm );
+        } );
+    } ) );
 
     after( 'specific', function() {
         ccm.close();

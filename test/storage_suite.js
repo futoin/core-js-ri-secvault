@@ -8,14 +8,16 @@ const crypto = require( 'crypto' );
 
 const KeyInfo = require( '../lib/storage/KeyInfo' );
 
-module.exports = function( describe, it, vars, storage ) {
+module.exports = function( describe, it, vars ) {
     let as;
+    let storage;
 
     beforeEach( 'storage', function() {
         as = vars.as;
     } );
 
     before( 'storage', $as_test( as => {
+        storage = vars.storage;
         storage.setStorageSecret( as, Buffer.from( vars.STORAGE_PASSWORD, 'hex' ) );
     } ) );
 
@@ -163,7 +165,7 @@ module.exports = function( describe, it, vars, storage ) {
         }
     ) );
 
-    it ( 'should detect invalid stats', $as_test(
+    it ( 'should detect invalid stats key', $as_test(
         ( as ) => {
             storage.updateUsage( as, uuidb64, {
                 times : 123,
@@ -173,12 +175,26 @@ module.exports = function( describe, it, vars, storage ) {
             } );
         },
         ( as, err ) => {
-            if ( err === 'InvalidArgument' ) {
-                as.success();
-            }
+            expect( err ).equal( 'InvalidArgument' );
+            expect( as.state.error_info ).equal( 'Invalid stats name: "unknown"' );
+            as.success();
         }
     ) );
 
+    it ( 'should detect invalid stats value', $as_test(
+        ( as ) => {
+            storage.updateUsage( as, uuidb64, {
+                times : 123,
+                bytes : 234.1,
+                failures : 345,
+            } );
+        },
+        ( as, err ) => {
+            expect( err ).equal( 'InvalidArgument' );
+            expect( as.state.error_info ).equal( 'Invalid stats value "bytes": "234.1"' );
+            as.success();
+        }
+    ) );
     it ( 'should list the key ID', $as_test(
         ( as ) => {
             storage.list( as );
