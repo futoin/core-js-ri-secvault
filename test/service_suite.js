@@ -15,13 +15,13 @@ require( 'futoin-invoker/SpecTools' ).on( 'error', function() {
     console.log( arguments );
 } );
 
-module.exports = function( describe, it, vars ) {
+module.exports = function( describe, it, vars, storage_name ) {
     const ccm = vars.ccm;
     const run_id = UUIDTool.genB64();
     let storage;
 
     before( 'service', function( done ) {
-        storage = vars.storage;
+        storage = vars[storage_name];
         const executor = vars.executor = new Executor( ccm );
 
         executor.on( 'notExpected', function() {
@@ -809,7 +809,7 @@ module.exports = function( describe, it, vars ) {
                     data_face.encrypt( as, id, data );
 
                     as.add( ( as, edata ) => {
-                        data_face.decrypt( as, id, edata.slice( 1 ) );
+                        data_face.decrypt( as, id, Buffer.from( 'FFFF', 'hex' ) );
                     } );
                 } );
             },
@@ -1021,7 +1021,7 @@ module.exports = function( describe, it, vars ) {
             }
         ) );
 
-        it ( 'obey failure limit', $as_test(
+        it ( 'should detect not applicable verification', $as_test(
             ( as ) => {
                 key_face.generateKey(
                     as,

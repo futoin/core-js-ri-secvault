@@ -8,21 +8,27 @@ const crypto = require( 'crypto' );
 
 const KeyInfo = require( '../lib/storage/KeyInfo' );
 
-module.exports = function( describe, it, vars ) {
+module.exports = function( describe, it, vars, storage_name ) {
     let as;
     let storage;
+    let storage_twin;
 
     beforeEach( 'storage', function() {
         as = vars.as;
     } );
 
     before( 'storage', $as_test( as => {
-        storage = vars.storage;
-        storage.setStorageSecret( as, Buffer.from( vars.STORAGE_PASSWORD, 'hex' ) );
+        storage = vars[storage_name];
+        storage_twin = vars[`${storage_name}Twin`];
+
+        const raw_kek = Buffer.from( vars.STORAGE_PASSWORD, 'hex' );
+        storage.setStorageSecret( as, raw_kek );
+        storage_twin.setStorageSecret( as, raw_kek );
     } ) );
 
     after( 'storage', $as_test( as => {
         storage.setStorageSecret( as, null );
+        storage_twin.setStorageSecret( as, null );
     } ) );
 
     const uuidb64 = UUIDTool.genB64();
@@ -35,6 +41,7 @@ module.exports = function( describe, it, vars ) {
         type: 'AES',
         params: { bits: 128 },
     } );
+    const EVT_DELAY = 300;
 
     it ( 'should not find key by ID', $as_test(
         ( as ) => {
@@ -67,6 +74,17 @@ module.exports = function( describe, it, vars ) {
     it ( 'should detect duplicate on save', $as_test(
         ( as ) => {
             storage.save( as, new KeyInfo( key_info ) );
+        },
+        ( as, err ) => {
+            if ( err === 'Duplicate' ) {
+                as.success();
+            }
+        }
+    ) );
+
+    it ( 'should detect duplicate on save in twin', $as_test(
+        ( as ) => {
+            storage_twin.save( as, new KeyInfo( key_info ) );
         },
         ( as, err ) => {
             if ( err === 'Duplicate' ) {
@@ -113,9 +131,57 @@ module.exports = function( describe, it, vars ) {
         }
     ) );
 
+    it ( 'should load the key by ID in twin', $as_test(
+        ( as ) => {
+            storage_twin.load( as, uuidb64 );
+            as.add( ( as, ki ) => {
+                expect( ki ).to.eql( Object.assign(
+                    {},
+                    key_info,
+                    {
+                        data: ki.data,
+                        created: ki.created,
+                        u_encrypt: false,
+                        u_sign: true,
+                        u_derive: false,
+                        u_shared: false,
+                        u_temp: false,
+                        stat_times: 0,
+                        stat_bytes: 0,
+                        stat_failures: 0,
+                    }
+                ) );
+            } );
+        }
+    ) );
+
     it ( 'should load the key by ext ID', $as_test(
         ( as ) => {
             storage.loadExt( as, ext_id );
+            as.add( ( as, ki ) => {
+                expect( ki ).to.eql( Object.assign(
+                    {},
+                    key_info,
+                    {
+                        data: ki.data,
+                        created: ki.created,
+                        u_encrypt: false,
+                        u_sign: true,
+                        u_derive: false,
+                        u_shared: false,
+                        u_temp: false,
+                        stat_times: 0,
+                        stat_bytes: 0,
+                        stat_failures: 0,
+                    }
+                ) );
+            } );
+        }
+    ) );
+
+    it ( 'should load the key by ext ID in twin', $as_test(
+        ( as ) => {
+            storage_twin.loadExt( as, ext_id );
             as.add( ( as, ki ) => {
                 expect( ki ).to.eql( Object.assign(
                     {},
@@ -157,6 +223,32 @@ module.exports = function( describe, it, vars ) {
             } );
 
             storage.load( as, uuidb64 );
+            as.add( ( as, ki ) => {
+                expect( ki.stat_times ).to.equal( 123 );
+                expect( ki.stat_bytes ).to.equal( 1000000000234 );
+                expect( ki.stat_failures ).to.equal( 345 );
+            } );
+        }
+    ) );
+
+    it ( 'should ignore own stats events', $as_test(
+        ( as ) => {
+            as.add( ( as ) => {
+                as.waitExternal();
+                setTimeout( () => as.success(), EVT_DELAY );
+            } );
+            as.add( ( as ) => storage.load( as, uuidb64 ) );
+            as.add( ( as, ki ) => {
+                expect( ki.stat_times ).to.equal( 123 );
+                expect( ki.stat_bytes ).to.equal( 1000000000234 );
+                expect( ki.stat_failures ).to.equal( 345 );
+            } );
+        }
+    ) );
+
+    it ( 'should update the stats in twin cache', $as_test(
+        ( as ) => {
+            storage_twin.load( as, uuidb64 );
             as.add( ( as, ki ) => {
                 expect( ki.stat_times ).to.equal( 123 );
                 expect( ki.stat_bytes ).to.equal( 1000000000234 );
@@ -211,6 +303,28 @@ module.exports = function( describe, it, vars ) {
             as.add( ( as, list ) => {
                 expect( list ).not.to.include( uuidb64 );
             } );
+            as.add(
+                ( as ) => ( as ) => storage.load( as, uuidb64 ),
+                ( as, err ) => {
+                    expect( err ).equal( 'UnknownKeyID' );
+                    as.success();
+                }
+            );
+        }
+    ) );
+
+    it ( 'should remove the key in twin cache', $as_test(
+        ( as ) => {
+            as.add( ( as ) => {
+                as.waitExternal();
+                setTimeout( () => as.success(), EVT_DELAY );
+            } );
+            as.add( ( as ) => storage_twin.load( as, uuidb64 ) );
+        },
+        ( as, err ) => {
+            if ( err === 'UnknownKeyID' ) {
+                as.success();
+            }
         }
     ) );
 };

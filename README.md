@@ -107,6 +107,8 @@ Supports custom characters set through options.chars.</p>
 <dt><a href="#VaultPlugin">VaultPlugin</a></dt>
 <dd><p>Base for SecVault plugins</p>
 </dd>
+<dt><a href="#CachedStorageWrapper">CachedStorageWrapper</a></dt>
+<dd></dd>
 <dt><a href="#DBStorage">DBStorage</a></dt>
 <dd><p>Database Encrypted secret storage</p>
 </dd>
@@ -504,6 +506,27 @@ Get plugin by name
 | Param | Type | Description |
 | --- | --- | --- |
 | name | <code>string</code> | plugin identifier |
+
+<a name="CachedStorageWrapper"></a>
+
+## CachedStorageWrapper
+**Kind**: global class  
+<a name="new_CachedStorageWrapper_new"></a>
+
+### new CachedStorageWrapper(ccm, target, options)
+C-tor
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> | CCM instance |
+| target | [<code>Storage</code>](#Storage) | target slow storage |
+| options | <code>object</code> | extra options for fine tune |
+| options.evtpushExecutor | <code>object</code> | executor instace with PushService |
+| [options.cacheSize] | <code>integer</code> | max cache entries |
+| [options.ttlMs] | <code>integer</code> | Cache Time-To-Live in ms |
+| [options.syncDelayMs] | <code>integer</code> | Cache Sync delay in ms |
+| [options.syncThreads] | <code>integer</code> | Cache Sync parallelism |
 
 <a name="DBStorage"></a>
 

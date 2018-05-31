@@ -88,14 +88,17 @@ describe( 'MySQL', function() {
         } );
         as.add( ( as ) => {
             ccm.alias( '#db.secvault', '#db.evt' );
-            new DBEvtServiceApp( as, {
+            vars.evtApp = new DBEvtServiceApp( as, {
                 ccm,
+                evtOptions : {
+                    sleep_max: 100,
+                },
             } );
         } );
         as.add( ( as ) => {
             ccm.alias( '#evtgen', '#secvault.evtgen' );
             ccm.alias( '#evtpush', '#secvault.evtpush' );
-            vars.storage = new SQLStorage( ccm );
+            vars.createStorage = () => new SQLStorage( ccm );
         } );
     } ) );
 
