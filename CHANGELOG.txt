@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.0.0 (2018-05-31) ===
 CHANGED: to use secure buffer comparison from SpecTools
 NEW: to support events as defined in FTN13 v1.1
 NEW: FTN13 v1.1 addStats()
