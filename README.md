@@ -19,6 +19,8 @@ Features:
 * Key types:
     - AES
     - RSA
+    - HMAC
+    - Password (plain password)
 * Key derivation:
     - PBKDF2
     - HKDF
