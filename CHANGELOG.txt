@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.0.1 (2018-05-31) ===
 FIXED: use of SV_DEL instead of SV_NEW event type
 FIXED: to invalidate cache on stats update miss
 
