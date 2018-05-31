@@ -327,4 +327,41 @@ module.exports = function( describe, it, vars, storage_name ) {
             }
         }
     ) );
+
+    it ( 'should detect removed key on cached stats update', $as_test(
+        ( as ) => {
+            const uuidb64 = UUIDTool.genB64();
+            const ext_id = `ext_${uuidb64}`;
+            const key_info = {
+                uuidb64,
+                raw : crypto.randomBytes( 16 ),
+                ext_id,
+                u_sign: true,
+                type: 'AES',
+                params: { bits: 128 },
+            };
+            storage.save( as, new KeyInfo( key_info ) );
+            storage.load( as, uuidb64 );
+
+            as.add( ( as ) => {
+                storage.updateUsage( as, uuidb64, {
+                    times: 1,
+                } );
+                vars.ccm.db( 'secvault' ).delete( 'enc_keys' )
+                    .where( { uuidb64 } ).execute( as );
+            } );
+
+            as.add( ( as ) => {
+                as.waitExternal();
+                setTimeout( () => as.success(), EVT_DELAY );
+                as.state.delayed = true;
+            } );
+            as.add( ( as ) => storage.load( as, uuidb64 ) );
+        },
+        ( as, err ) => {
+            expect( err ).equal( 'UnknownKeyID' );
+            expect( as.state.delayed ).true;
+            as.success();
+        }
+    ) );
 };
