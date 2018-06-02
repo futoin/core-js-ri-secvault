@@ -110,7 +110,8 @@ Supports custom characters set through options.chars.</p>
 <dd><p>Base for SecVault plugins</p>
 </dd>
 <dt><a href="#CachedStorageWrapper">CachedStorageWrapper</a></dt>
-<dd></dd>
+<dd><p>Storage wapper with advanced caching &amp; invalidation</p>
+</dd>
 <dt><a href="#DBStorage">DBStorage</a></dt>
 <dd><p>Database Encrypted secret storage</p>
 </dd>
@@ -512,6 +513,8 @@ Get plugin by name
 <a name="CachedStorageWrapper"></a>
 
 ## CachedStorageWrapper
+Storage wapper with advanced caching & invalidation
+
 **Kind**: global class  
 <a name="new_CachedStorageWrapper_new"></a>
 
