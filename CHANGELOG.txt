@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.0.2 (2018-06-03) ===
 CHANGED: updated to futoin-eventstream v1.1 (incompatible changes)
 
 === 1.0.1 (2018-05-31) ===
