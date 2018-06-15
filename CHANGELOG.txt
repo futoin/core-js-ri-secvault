@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.1.2 (2018-06-15) ===
 CHANGED: upgraded to latest FutoIn deps
 
 === 1.1.1 (2018-06-13) ===
