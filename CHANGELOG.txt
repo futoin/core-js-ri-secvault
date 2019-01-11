@@ -1,4 +1,8 @@
 
+=== (next) ===
+CHANGED: dependency maintenance
+CHANGED: dropped Node v6 support
+
 === 1.1.2 (2018-06-15) ===
 CHANGED: upgraded to latest FutoIn deps
 
