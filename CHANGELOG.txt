@@ -1,5 +1,6 @@
 === (next) ===
 CHANGED: dependency maintenance
+CHANGED: to use @futoin/specs
 
 === 1.1.5 (2019-09-27) ===
 CHANGED: to use nyc instead of istanbul
