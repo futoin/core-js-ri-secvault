@@ -662,7 +662,7 @@ dQIDAQAB
                                 ( as ) => {
                                     sig[0] = ~sig[0];
                                     p.verify( as, key, buf, sig, { hash } );
-                                    as.add( ( as ) => as.error( 'Fail' ) );
+                                    as.add( ( as ) => as.error( 'Fail ' + hash ) );
                                 },
                                 ( as, err ) => {
                                     if ( err === 'InvalidSignature' ) {
@@ -681,7 +681,7 @@ dQIDAQAB
                         as.add(
                             ( as ) => {
                                 p.sign( as, key, buf, { hash } );
-                                as.add( ( as ) => as.error( 'Fail' ) );
+                                as.add( ( as ) => as.error( 'Fail ' + hash ) );
                             },
                             ( as, err ) => {
                                 if ( err === 'NotSupported' ) {

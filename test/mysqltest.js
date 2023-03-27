@@ -10,7 +10,7 @@ const SQLStorage = require( '../lib/storage/SQLStorage' );
 
 const DBEvtServiceApp = require( 'futoin-eventstream/DBServiceApp' );
 
-const DB_PORT = process.env.MYSQL_PORT || '3309';
+const DB_PORT = process.env.MYSQL_PORT || '3306';
 
 describe( 'MySQL', function() {
     before( function( done ) {

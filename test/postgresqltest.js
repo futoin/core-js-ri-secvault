@@ -10,7 +10,7 @@ const SQLStorage = require( '../lib/storage/SQLStorage' );
 
 const DBEvtServiceApp = require( 'futoin-eventstream/DBServiceApp' );
 
-const DB_PORT = process.env.POSTGRESQL_PORT || '5435';
+const DB_PORT = process.env.POSTGRESQL_PORT || '5432';
 
 describe( 'PostgreSQL', function() {
     before( function( done ) {
