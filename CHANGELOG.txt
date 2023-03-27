@@ -1,4 +1,4 @@
-=== (next) ===
+=== 1.1.12 (2023-03-27) ===
 FIXED: cache invalidation bug after lru-cache upgrade
 
 === 1.1.11 (2023-03-27) ===
