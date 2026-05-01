@@ -44,7 +44,7 @@ class KeyService extends BaseService {
             },
             ( as, err ) => {
                 as.error( 'InvalidSecret' );
-            }
+            },
         );
     }
 
@@ -121,7 +121,7 @@ class KeyService extends BaseService {
 
                 as.add(
                     ( as ) => vp.validateKey( as, info.raw ),
-                    ( as, err ) => as.error( 'InvalidKey', as.state.error_info )
+                    ( as, err ) => as.error( 'InvalidKey', as.state.error_info ),
                 );
                 as.add(
                     ( as ) => {
@@ -131,9 +131,9 @@ class KeyService extends BaseService {
                         if ( err === 'Duplicate' ) {
                             storage.loadExt( as, ext_id, inject );
                         }
-                    }
+                    },
                 );
-            }
+            },
         );
 
         as.add( ( as, old_info ) => {
@@ -190,7 +190,7 @@ class KeyService extends BaseService {
                             failures: 1,
                         } );
                         as.add( ( as ) => as.error( 'InvalidKey' ) );
-                    }
+                    },
                 );
             } );
         } );

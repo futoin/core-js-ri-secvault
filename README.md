@@ -80,7 +80,8 @@ $ yarn add futoin-secvault --save
 <dd><p>Key Service</p>
 </dd>
 <dt><a href="#BaseFace">BaseFace</a></dt>
-<dd><p>Base Face with neutral common registration functionality</p>
+<dd><p>Base Face with neutral common registration functionality
+Not official API.</p>
 </dd>
 <dt><a href="#BaseService">BaseService</a></dt>
 <dd><p>Base Service with common registration logic</p>
@@ -158,9 +159,9 @@ Key Service
 
 ## BaseFace
 Base Face with neutral common registration functionality
+Not official API.
 
 **Kind**: global class  
-**Note**: Not official API  
 
 * [BaseFace](#BaseFace)
     * [.LATEST_VERSION](#BaseFace.LATEST_VERSION)
@@ -191,10 +192,10 @@ CCM registration helper
 | as | <code>AsyncSteps</code> |  | steps interface |
 | ccm | <code>AdvancedCCM</code> |  | CCM instance |
 | name | <code>string</code> |  | CCM registration name |
-| endpoint | <code>\*</code> |  | see AdvancedCCM#register |
-| [credentials] | <code>\*</code> | <code></code> | see AdvancedCCM#register |
-| [options] | <code>object</code> | <code>{}</code> | interface options |
-| [options.version] | <code>string</code> | <code>&quot;1.0&quot;</code> | interface version to use |
+| endpoint | <code>any</code> |  | see AdvancedCCM#register |
+| [credentials] | <code>any</code> | <code></code> | see AdvancedCCM#register |
+| [options] | <code>object</code> |  | interface options |
+| [options.version] | <code>string</code> |  | interface version to use |
 
 <a name="BaseService"></a>
 
@@ -213,11 +214,11 @@ Base Service with common registration logic
 C-tor
 
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| storage | [<code>Storage</code>](#Storage) |  | low-level storage instance |
-| options | <code>object</code> |  | passed to superclass c-tor |
-| options.failure_limit | <code>integer</code> | <code>10000</code> | limit crypt key decrypt failures |
+| Param | Type | Description |
+| --- | --- | --- |
+| storage | [<code>Storage</code>](#Storage) | low-level storage instance |
+| options | <code>object</code> | passed to superclass c-tor |
+| [options.failure_limit] | <code>number</code> | limit crypt key decrypt failures, integer |
 
 <a name="BaseService.register"></a>
 
@@ -354,13 +355,12 @@ Check if type conforms to asymmetric cryptography requirements
 Generate new key
 
 **Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
-**Note**: passes raw key buffer to the next step  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | as | <code>AsyncSteps</code> | AsyncSteps interface |
 | options | <code>object</code> | implementation-defined options |
-| options.bits | <code>integer</code> | key length, if applicable |
+| options.bits | <code>number</code> | key length, if applicable Passes raw key buffer to the next step |
 
 <a name="VaultPlugin+validateKey"></a>
 
@@ -380,18 +380,17 @@ Validate key data
 Derive new key
 
 **Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
-**Note**: passes raw key buffer to the next step  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  | AsyncSteps interface |
-| base | <code>Buffer</code> |  | base key as is |
-| bits | <code>integer</code> |  | key length |
-| hash | <code>string</code> |  | hash name to use |
-| options | <code>object</code> |  | implementation-defined options |
-| options.salt | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | salt, if any |
-| options.info | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | info, if any |
-| options.rounds | <code>integer</code> | <code>1000</code> | rounds, if any |
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| base | <code>Buffer</code> | base key as is |
+| bits | <code>number</code> | key length |
+| hash | <code>string</code> | hash name to use |
+| options | <code>object</code> | implementation-defined options |
+| [options.salt] | <code>string</code> | salt, if any |
+| [options.info] | <code>string</code> | info, if any |
+| [options.rounds] | <code>number</code> | rounds, if any Passes raw key buffer to the next step |
 
 <a name="VaultPlugin+pubkey"></a>
 
@@ -399,13 +398,12 @@ Derive new key
 Get public key from private key
 
 **Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
-**Note**: passes raw key buffer to the next step  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | as | <code>AsyncSteps</code> | AsyncSteps interface |
 | key | <code>Buffer</code> | raw private key |
-| options | <code>object</code> | implementation-defined options |
+| options | <code>object</code> | implementation-defined options Passes raw key buffer to the next step |
 
 <a name="VaultPlugin+encrypt"></a>
 
@@ -413,40 +411,6 @@ Get public key from private key
 Encrypt arbitrary data
 
 **Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
-**Note**: Passes Buffer { edata | iv | authtag } to the next step  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  | AsyncSteps interface |
-| key | <code>Buffer</code> |  | raw key |
-| data | <code>Buffer</code> |  | raw data |
-| options | <code>object</code> |  | implementation-defined options |
-| options.iv | <code>Buffer</code> | <code></code> | custom IV, if needed |
-| options.aad | <code>Buffer</code> | <code></code> | additional data, if supported |
-
-<a name="VaultPlugin+decrypt"></a>
-
-### vaultPlugin.decrypt(as, key, edata, options)
-Decrypt arbitrary data
-
-**Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
-**Note**: Passes Buffer of raw data to the next step  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| as | <code>AsyncSteps</code> | AsyncSteps interface |
-| key | <code>Buffer</code> | raw key |
-| edata | <code>object</code> | encrypted data as generated by encrypt |
-| options | <code>object</code> | implementation-defined options |
-| options.aad | <code>string</code> | additional authentication data, if applicable |
-
-<a name="VaultPlugin+sign"></a>
-
-### vaultPlugin.sign(as, key, data, options)
-Encrypt arbitrary data
-
-**Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
-**Note**: Passes Buffer { sig } to the next step  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -454,7 +418,38 @@ Encrypt arbitrary data
 | key | <code>Buffer</code> | raw key |
 | data | <code>Buffer</code> | raw data |
 | options | <code>object</code> | implementation-defined options |
-| options.hash | <code>string</code> | hash name, if applicable |
+| [options.iv] | <code>Buffer</code> | custom IV, if needed |
+| [options.aad] | <code>Buffer</code> | additional data, if supported Passes Buffer { edata | iv | authtag } to the next step |
+
+<a name="VaultPlugin+decrypt"></a>
+
+### vaultPlugin.decrypt(as, key, edata, options)
+Decrypt arbitrary data
+
+**Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| key | <code>Buffer</code> | raw key |
+| edata | <code>object</code> | encrypted data as generated by encrypt |
+| options | <code>object</code> | implementation-defined options |
+| options.aad | <code>string</code> | additional authentication data, if applicable Passes Buffer of raw data to the next step |
+
+<a name="VaultPlugin+sign"></a>
+
+### vaultPlugin.sign(as, key, data, options)
+Encrypt arbitrary data
+
+**Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| key | <code>Buffer</code> | raw key |
+| data | <code>Buffer</code> | raw data |
+| options | <code>object</code> | implementation-defined options |
+| options.hash | <code>string</code> | hash name, if applicable Passes Buffer { sig } to the next step |
 
 <a name="VaultPlugin+verify"></a>
 
@@ -462,7 +457,6 @@ Encrypt arbitrary data
 Decrypt arbitrary data
 
 **Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
-**Note**: Passes Buffer of raw data to the next step  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -471,7 +465,7 @@ Decrypt arbitrary data
 | edata | <code>object</code> | encrypted data as generated by encrypt |
 | sig | <code>Buffer</code> | signature to verify |
 | options | <code>object</code> | implementation-defined options |
-| options.hash | <code>string</code> | hash name, if applicable |
+| options.hash | <code>string</code> | hash name, if applicable Passes Buffer of raw data to the next step |
 
 <a name="VaultPlugin+random"></a>
 
@@ -479,12 +473,11 @@ Decrypt arbitrary data
 Common API to generate random data
 
 **Kind**: instance method of [<code>VaultPlugin</code>](#VaultPlugin)  
-**Note**: Passes Buffer of renadom data to the next step  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | as | <code>AsyncSteps</code> | AsyncSteps interface |
-| size | <code>integer</code> | how many bytes to generate |
+| size | <code>number</code> | how many bytes to generate Passes Buffer of random data to the next step |
 
 <a name="VaultPlugin.registerPlugin"></a>
 
@@ -528,10 +521,10 @@ C-tor
 | target | [<code>Storage</code>](#Storage) | target slow storage |
 | options | <code>object</code> | extra options for fine tune |
 | options.evtpushExecutor | <code>object</code> | executor instace with PushService |
-| [options.cacheSize] | <code>integer</code> | max cache entries |
-| [options.ttlMs] | <code>integer</code> | Cache Time-To-Live in ms |
-| [options.syncDelayMs] | <code>integer</code> | Cache Sync delay in ms |
-| [options.syncThreads] | <code>integer</code> | Cache Sync parallelism |
+| [options.cacheSize] | <code>number</code> | max cache entries |
+| [options.ttlMs] | <code>number</code> | Cache Time-To-Live in ms |
+| [options.syncDelayMs] | <code>number</code> | Cache Sync delay in ms |
+| [options.syncThreads] | <code>number</code> | Cache Sync parallelism |
 
 <a name="DBStorage"></a>
 
@@ -549,30 +542,30 @@ Assume there is
 **Kind**: global class  
 
 * [EncryptedStorage](#EncryptedStorage)
-    * [.setStorageSecret(as, secret, cipher_opts, kdf_opts)](#EncryptedStorage+setStorageSecret)
+    * [.setStorageSecret(as, secret, [cipher_opts], [kdf_opts])](#EncryptedStorage+setStorageSecret)
     * [.isLocked()](#EncryptedStorage+isLocked) ⇒ <code>boolean</code>
 
 <a name="EncryptedStorage+setStorageSecret"></a>
 
-### encryptedStorage.setStorageSecret(as, secret, cipher_opts, kdf_opts)
+### encryptedStorage.setStorageSecret(as, secret, [cipher_opts], [kdf_opts])
 Configure common storage secret which is used to encrypt keys
 
 **Kind**: instance method of [<code>EncryptedStorage</code>](#EncryptedStorage)  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  | AsyncSteps interface |
-| secret | <code>Buffer</code> |  | some arbitrary secret |
-| cipher_opts | <code>object</code> | <code>{}</code> | options for encryption/decryption |
-| cipher_opts.type | <code>string</code> | <code>&quot;AES&quot;</code> | cipher type |
-| cipher_opts.bits | <code>integer</code> | <code>256</code> | key length for KDF |
-| cipher_opts.mode | <code>string</code> | <code>&quot;GCM&quot;</code> | cipher block mode |
-| cipher_opts.aad | <code>string</code> | <code>&quot;SecVault&quot;</code> | additional auth data |
-| kdf_opts | <code>object</code> \| <code>null</code> | <code>{}</code> | KDF options, null to disable |
-| kdf_opts.type | <code>string</code> | <code>&quot;HKDF&quot;</code> | KDF type |
-| kdf_opts.salt | <code>string</code> | <code>&quot;SecVault&quot;</code> | KDF salt |
-| kdf_opts.info | <code>string</code> | <code>&quot;KEK&quot;</code> | info parameter for HKDF |
-| kdf_opts.rounds | <code>string</code> | <code>1000</code> | rounds for PBKDF2 |
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| secret | <code>Buffer</code> | some arbitrary secret |
+| [cipher_opts] | <code>object</code> | options for encryption/decryption |
+| [cipher_opts.type] | <code>string</code> | cipher type |
+| [cipher_opts.bits] | <code>number</code> | key length for KDF |
+| [cipher_opts.mode] | <code>string</code> | cipher block mode |
+| [cipher_opts.aad] | <code>string</code> | additional auth data |
+| [kdf_opts] | <code>object</code> \| <code>null</code> | KDF options, null to disable |
+| [kdf_opts.type] | <code>string</code> | KDF type |
+| [kdf_opts.salt] | <code>string</code> | KDF salt |
+| [kdf_opts.info] | <code>string</code> | info parameter for HKDF |
+| [kdf_opts.rounds] | <code>string</code> | rounds for PBKDF2 |
 
 <a name="EncryptedStorage+isLocked"></a>
 
@@ -589,13 +582,13 @@ Sealed key info
 **Kind**: global class  
 <a name="new_KeyInfo_new"></a>
 
-### new KeyInfo(info)
+### new KeyInfo([info])
 C-tor
 
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| info | <code>object</code> | <code>{}</code> | optional default values |
+| Param | Type | Description |
+| --- | --- | --- |
+| [info] | <code>object</code> | optional default values |
 
 <a name="SQLStorage"></a>
 
@@ -609,11 +602,11 @@ SQL secret storage
 C-tor
 
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| ccm | <code>AdvancedCCM</code> |  | CCM instance with registered 'secvault' DB |
-| options | <code>object</code> |  | options |
-| options.key_table | <code>string</code> | <code>&quot;enc_keys&quot;</code> | name of encrypted key table |
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> | CCM instance with registered 'secvault' DB |
+| options | <code>object</code> | options |
+| [options.key_table] | <code>string</code> | name of encrypted key table |
 
 <a name="Storage"></a>
 

@@ -1,13 +1,16 @@
 'use strict';
 
-const expect = require( 'chai' ).expect;
-
 const $as = require( 'futoin-asyncsteps' );
 const CachedStorageWrapper = require( '../lib/storage/CachedStorageWrapper' );
 
 module.exports = function( describe, it, vars ) {
     require( '../lib/main' );
     vars.STORAGE_PASSWORD = 'e3b694af320229f9b464a358eae063a8';
+
+    let expect;
+    before( async () => {
+        ( { expect } = ( await import( 'chai' ) ) );
+    } );
 
     beforeEach( 'common', function() {
         vars.as = $as();
@@ -32,7 +35,7 @@ module.exports = function( describe, it, vars ) {
                 {
                     syncDelayMs: 100,
                     evtpushExecutor: vars.evtApp.executor(),
-                }
+                },
             );
             vars.cachedStorage.on( 'workerError', ( ...args ) => {
                 console.log( ...args );
@@ -44,7 +47,7 @@ module.exports = function( describe, it, vars ) {
                 {
                     syncDelayMs: 100,
                     evtpushExecutor: vars.evtApp.executor(),
-                }
+                },
             );
             vars.cachedStorageTwin.on( 'workerError', ( ...args ) => {
                 console.log( ...args );

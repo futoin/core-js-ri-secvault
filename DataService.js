@@ -71,7 +71,7 @@ class DataService extends BaseService {
                         failures: 1,
                     } );
                     as.add( ( as ) => as.error( err ) );
-                }
+                },
             );
             as.add( ( as, rdata ) => reqinfo.result( rdata ) );
         } );
@@ -117,7 +117,7 @@ class DataService extends BaseService {
                         failures: 1,
                     } );
                     as.add( ( as ) => as.error( err ) );
-                }
+                },
             );
         } );
     }

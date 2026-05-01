@@ -1,9 +1,13 @@
 'use strict';
 
-const expect = require( 'chai' ).expect;
 const password_gen = require( '../lib/password_gen' );
 
 describe( 'password_gen', function() {
+    let expect;
+    before( async () => {
+        ( { expect } = ( await import( 'chai' ) ) );
+    } );
+
     it( 'should generate random passwords', function() {
         [ 8, 21, 33, 255 ].forEach( ( i ) => {
             const a = password_gen( i );

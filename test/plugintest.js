@@ -1,6 +1,5 @@
 'use strict';
 
-const expect = require( 'chai' ).expect;
 const $as = require( 'futoin-asyncsteps' );
 const $as_test = require( 'futoin-asyncsteps/testcase' );
 
@@ -8,6 +7,11 @@ const { VaultPlugin } = require( '../lib/main' );
 
 describe( 'Plugins', function() {
     let as;
+
+    let expect;
+    before( async () => {
+        ( { expect } = ( await import( 'chai' ) ) );
+    } );
 
     beforeEach( 'Plugins', function() {
         as = $as();
@@ -70,7 +74,7 @@ describe( 'Plugins', function() {
                         {
                             salt: 'salt',
                             rounds: 1,
-                        }
+                        },
                     );
                     as.add( ( as, key ) => {
                         expect( key.toString( 'hex' ) ).equal(
@@ -80,7 +84,7 @@ describe( 'Plugins', function() {
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -98,7 +102,7 @@ describe( 'Plugins', function() {
                         {
                             salt: 'saltSALTsaltSALTsaltSALTsaltSALTsalt',
                             rounds: 4096,
-                        }
+                        },
                     );
                     as.add( ( as, key ) => {
                         expect( key.toString( 'hex' ) ).equal(
@@ -108,7 +112,7 @@ describe( 'Plugins', function() {
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -145,7 +149,7 @@ describe( 'Plugins', function() {
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -164,7 +168,7 @@ describe( 'Plugins', function() {
                         Buffer.from( '00000000000000000000000000000000', 'hex' ),
                         {
                             iv: Buffer.from( '000000000000000000000000000000', 'hex' ),
-                        }
+                        },
                     );
 
                     as.add( ( as ) => as.error( 'Fail' ) );
@@ -176,7 +180,7 @@ describe( 'Plugins', function() {
                         console.log( `${err}: ${as.state.error_info}` );
                         done( as.state.last_exception || 'Fail' );
                     }
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -195,7 +199,7 @@ describe( 'Plugins', function() {
                         Buffer.from( '00000000000000000000000000000000', 'hex' ),
                         {
                             mode: 'INV',
-                        }
+                        },
                     );
 
                     as.add( ( as ) => as.error( 'Fail' ) );
@@ -207,7 +211,7 @@ describe( 'Plugins', function() {
                         console.log( `${err}: ${as.state.error_info}` );
                         done( as.state.last_exception || 'Fail' );
                     }
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -226,7 +230,7 @@ describe( 'Plugins', function() {
                         Buffer.from( '00000000000000000000000000000000', 'hex' ),
                         {
                             iv: Buffer.from( '00000000000000000000000000000000', 'hex' ),
-                        }
+                        },
                     );
                     as.add( ( as, edata ) => {
                         expect( edata.toString( 'hex' ) ).equal(
@@ -241,7 +245,7 @@ describe( 'Plugins', function() {
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -255,7 +259,7 @@ describe( 'Plugins', function() {
                     p.encrypt(
                         as,
                         key,
-                        Buffer.from( '00000000000000000000000000000000', 'hex' )
+                        Buffer.from( '00000000000000000000000000000000', 'hex' ),
                     );
                     as.add( ( as, edata ) => {
                         expect( edata.toString( 'hex' ) ).not.equal(
@@ -270,7 +274,7 @@ describe( 'Plugins', function() {
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -288,7 +292,7 @@ describe( 'Plugins', function() {
                         {
                             mode: 'GCM',
                             iv: Buffer.from( '000000000000000000000000', 'hex' ),
-                        }
+                        },
                     );
                     as.add( ( as, edata ) => {
                         expect( edata.toString( 'hex' ) ).equal(
@@ -303,7 +307,7 @@ describe( 'Plugins', function() {
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -320,7 +324,7 @@ describe( 'Plugins', function() {
                         Buffer.from( '00000000000000000000000000000000', 'hex' ),
                         {
                             mode: 'GCM',
-                        }
+                        },
                     );
                     as.add( ( as, edata ) => {
                         expect( edata.toString( 'hex' ) ).not.equal(
@@ -335,7 +339,7 @@ describe( 'Plugins', function() {
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -355,7 +359,7 @@ describe( 'Plugins', function() {
                         {
                             mode: 'GCM',
                             aad,
-                        }
+                        },
                     );
                     as.add( ( as, edata ) => {
                         p.decrypt( as, key, edata, { mode: 'GCM', aad } );
@@ -368,7 +372,7 @@ describe( 'Plugins', function() {
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -402,7 +406,7 @@ describe( 'Plugins', function() {
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -466,7 +470,7 @@ dQIDAQAB
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -490,7 +494,7 @@ dQIDAQAB
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -515,7 +519,7 @@ dQIDAQAB
                                 ( as, err ) => {
                                     expect( err ).to.equal( 'InvalidSignature' );
                                     as.success();
-                                }
+                                },
                             );
                         } );
                     } );
@@ -523,7 +527,7 @@ dQIDAQAB
                 ( as, err ) => {
                     console.log( `${err}: ${as.state.error_info}` );
                     done( as.state.last_exception || 'Fail' );
-                }
+                },
             );
             as.add( ( as ) => done() );
             as.execute();
@@ -565,7 +569,7 @@ dQIDAQAB
                         if ( err === 'NotSupported' ) {
                             as.success();
                         }
-                    }
+                    },
                 );
             } );
         } ) );
@@ -596,7 +600,7 @@ dQIDAQAB
                         if ( err === 'InvalidSignature' ) {
                             as.success();
                         }
-                    }
+                    },
                 );
             } );
         } ) );
@@ -634,7 +638,7 @@ dQIDAQAB
                         if ( err === 'NotSupported' ) {
                             as.success();
                         }
-                    }
+                    },
                 );
             } );
         } ) );
@@ -668,7 +672,7 @@ dQIDAQAB
                                     if ( err === 'InvalidSignature' ) {
                                         as.success();
                                     }
-                                }
+                                },
                             );
                         } );
                     } );
@@ -687,7 +691,7 @@ dQIDAQAB
                                 if ( err === 'NotSupported' ) {
                                     as.success();
                                 }
-                            }
+                            },
                         );
                     } );
 
@@ -700,7 +704,7 @@ dQIDAQAB
                             if ( err === 'InvalidSignature' ) {
                                 as.success();
                             }
-                        }
+                        },
                     );
                 } );
             } );

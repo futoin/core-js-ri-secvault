@@ -47,7 +47,7 @@ describe( 'MySQL', function() {
                             `-url=jdbc:mysql://127.0.0.1:${DB_PORT}/secvault`,
                             '-user=ftntest',
                             `-locations=${flyway_locations}`,
-                        ]
+                        ],
                     );
 
                     if ( res.status ) {
@@ -62,7 +62,7 @@ describe( 'MySQL', function() {
                 console.log( err );
                 console.log( as.state.error_info );
                 done( as.state.last_exception || 'Fail' );
-            }
+            },
         ).add( ( as ) => done() )
             .execute();
     } );

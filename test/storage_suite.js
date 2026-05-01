@@ -1,6 +1,5 @@
 'use strict';
 
-const expect = require( 'chai' ).expect;
 const $as = require( 'futoin-asyncsteps' );
 const $as_test = require( 'futoin-asyncsteps/testcase' );
 const UUIDTool = require( 'futoin-uuid' );
@@ -12,6 +11,11 @@ module.exports = function( describe, it, vars, storage_name ) {
     let as;
     let storage;
     let storage_twin;
+
+    let expect;
+    before( async () => {
+        ( { expect } = ( await import( 'chai' ) ) );
+    } );
 
     beforeEach( 'storage', function() {
         as = vars.as;
@@ -51,7 +55,7 @@ module.exports = function( describe, it, vars, storage_name ) {
             if ( err === 'UnknownKeyID' ) {
                 as.success();
             }
-        }
+        },
     ) );
 
     it ( 'should not find key by ext ID', $as_test(
@@ -62,13 +66,13 @@ module.exports = function( describe, it, vars, storage_name ) {
             if ( err === 'UnknownKeyID' ) {
                 as.success();
             }
-        }
+        },
     ) );
 
     it ( 'should save new key', $as_test(
         ( as ) => {
             storage.save( as, new KeyInfo( key_info ) );
-        }
+        },
     ) );
 
     it ( 'should detect duplicate on save', $as_test(
@@ -79,7 +83,7 @@ module.exports = function( describe, it, vars, storage_name ) {
             if ( err === 'Duplicate' ) {
                 as.success();
             }
-        }
+        },
     ) );
 
     it ( 'should detect duplicate on save in twin', $as_test(
@@ -90,7 +94,7 @@ module.exports = function( describe, it, vars, storage_name ) {
             if ( err === 'Duplicate' ) {
                 as.success();
             }
-        }
+        },
     ) );
 
     it ( 'should save another key', $as_test(
@@ -102,9 +106,9 @@ module.exports = function( describe, it, vars, storage_name ) {
                 {
                     uuidb64: other_id,
                     ext_id: `ext_${other_id}`,
-                }
+                },
             ) ) );
-        }
+        },
     ) );
 
     it ( 'should load the key by ID', $as_test(
@@ -125,10 +129,10 @@ module.exports = function( describe, it, vars, storage_name ) {
                         stat_times: 0,
                         stat_bytes: 0,
                         stat_failures: 0,
-                    }
+                    },
                 ) );
             } );
-        }
+        },
     ) );
 
     it ( 'should load the key by ID in twin', $as_test(
@@ -149,10 +153,10 @@ module.exports = function( describe, it, vars, storage_name ) {
                         stat_times: 0,
                         stat_bytes: 0,
                         stat_failures: 0,
-                    }
+                    },
                 ) );
             } );
-        }
+        },
     ) );
 
     it ( 'should load the key by ext ID', $as_test(
@@ -173,10 +177,10 @@ module.exports = function( describe, it, vars, storage_name ) {
                         stat_times: 0,
                         stat_bytes: 0,
                         stat_failures: 0,
-                    }
+                    },
                 ) );
             } );
-        }
+        },
     ) );
 
     it ( 'should load the key by ext ID in twin', $as_test(
@@ -197,10 +201,10 @@ module.exports = function( describe, it, vars, storage_name ) {
                         stat_times: 0,
                         stat_bytes: 0,
                         stat_failures: 0,
-                    }
+                    },
                 ) );
             } );
-        }
+        },
     ) );
 
     it ( 'should update stats', $as_test(
@@ -228,7 +232,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 expect( ki.stat_bytes ).to.equal( 1000000000234 );
                 expect( ki.stat_failures ).to.equal( 345 );
             } );
-        }
+        },
     ) );
 
     it ( 'should ignore own stats events', $as_test(
@@ -243,7 +247,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 expect( ki.stat_bytes ).to.equal( 1000000000234 );
                 expect( ki.stat_failures ).to.equal( 345 );
             } );
-        }
+        },
     ) );
 
     it ( 'should update the stats in twin cache', $as_test(
@@ -254,7 +258,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 expect( ki.stat_bytes ).to.equal( 1000000000234 );
                 expect( ki.stat_failures ).to.equal( 345 );
             } );
-        }
+        },
     ) );
 
     it ( 'should detect invalid stats key', $as_test(
@@ -270,7 +274,7 @@ module.exports = function( describe, it, vars, storage_name ) {
             expect( err ).equal( 'InvalidArgument' );
             expect( as.state.error_info ).equal( 'Invalid stats name: "unknown"' );
             as.success();
-        }
+        },
     ) );
 
     it ( 'should detect invalid stats value', $as_test(
@@ -285,7 +289,7 @@ module.exports = function( describe, it, vars, storage_name ) {
             expect( err ).equal( 'InvalidArgument' );
             expect( as.state.error_info ).equal( 'Invalid stats value "bytes": "234.1"' );
             as.success();
-        }
+        },
     ) );
     it ( 'should list the key ID', $as_test(
         ( as ) => {
@@ -293,7 +297,7 @@ module.exports = function( describe, it, vars, storage_name ) {
             as.add( ( as, list ) => {
                 expect( list ).to.include( uuidb64 );
             } );
-        }
+        },
     ) );
 
     it ( 'should remove the key', $as_test(
@@ -308,9 +312,9 @@ module.exports = function( describe, it, vars, storage_name ) {
                 ( as, err ) => {
                     expect( err ).equal( 'UnknownKeyID' );
                     as.success();
-                }
+                },
             );
-        }
+        },
     ) );
 
     it ( 'should remove the key in twin cache', $as_test(
@@ -325,7 +329,7 @@ module.exports = function( describe, it, vars, storage_name ) {
             if ( err === 'UnknownKeyID' ) {
                 as.success();
             }
-        }
+        },
     ) );
 
     it ( 'should detect removed key on cached stats update', $as_test(
@@ -362,6 +366,6 @@ module.exports = function( describe, it, vars, storage_name ) {
             expect( err ).equal( 'UnknownKeyID' );
             expect( as.state.delayed ).true;
             as.success();
-        }
+        },
     ) );
 };

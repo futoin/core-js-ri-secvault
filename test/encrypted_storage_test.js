@@ -1,6 +1,5 @@
 'use strict';
 
-const expect = require( 'chai' ).expect;
 const $as = require( 'futoin-asyncsteps' );
 const $as_test = require( 'futoin-asyncsteps/testcase' );
 
@@ -12,6 +11,11 @@ const KeyInfo = require( '../lib/storage/KeyInfo' );
 describe( 'EncryptedStorage', function() {
     let as;
     let estore;
+
+    let expect;
+    before( async () => {
+        ( { expect } = ( await import( 'chai' ) ) );
+    } );
 
     before( 'EncryptedStorage', function() {
         estore = new class extends EncryptedStorage {
@@ -47,7 +51,7 @@ describe( 'EncryptedStorage', function() {
                 as,
                 Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' ),
                 { mode: 'CBC' },
-                null
+                null,
             );
 
             as.add( ( as ) => {
@@ -60,7 +64,7 @@ describe( 'EncryptedStorage', function() {
                 } );
                 expect( estore._cipher_opts.aad.toString() ).to.equal( 'SecVault' );
             } );
-        }
+        },
     ) );
 
     it( 'should setup password-based KEK', $as_test(
@@ -76,7 +80,7 @@ describe( 'EncryptedStorage', function() {
                     aad: estore._cipher_opts.aad,
                 } );
             } );
-        }
+        },
     ) );
 
     it( 'should encrypt and decrypt', function( done ) {
@@ -111,7 +115,7 @@ describe( 'EncryptedStorage', function() {
             ( as, err ) => {
                 console.log( `${err}: ${as.state.error_info}` );
                 done( as.state.last_exception || 'Fail' );
-            }
+            },
         );
         as.add( ( as ) => done() );
         as.execute();
@@ -136,7 +140,7 @@ describe( 'EncryptedStorage', function() {
                         if ( err === 'LockedStorage' ) {
                             as.success();
                         }
-                    }
+                    },
                 );
 
                 as.add(
@@ -148,13 +152,13 @@ describe( 'EncryptedStorage', function() {
                         if ( err === 'LockedStorage' ) {
                             as.success();
                         }
-                    }
+                    },
                 );
             },
             ( as, err ) => {
                 console.log( `${err}: ${as.state.error_info}` );
                 done( as.state.last_exception || 'Fail' );
-            }
+            },
         );
         as.add( ( as ) => done() );
         as.execute();

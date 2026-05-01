@@ -4,7 +4,6 @@ const $as = require( 'futoin-asyncsteps' );
 const $as_test = require( 'futoin-asyncsteps/testcase' );
 const Executor = require( 'futoin-executor/Executor' );
 const UUIDTool = require( 'futoin-uuid' );
-const expect = require( 'chai' ).expect;
 
 const KeyService = require( '../KeyService' );
 const DataService = require( '../DataService' );
@@ -19,6 +18,11 @@ module.exports = function( describe, it, vars, storage_name ) {
     const ccm = vars.ccm;
     const run_id = UUIDTool.genB64();
     let storage;
+
+    let expect;
+    before( async () => {
+        ( { expect } = ( await import( 'chai' ) ) );
+    } );
 
     before( 'service', function( done ) {
         storage = vars[storage_name];
@@ -66,7 +70,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'InvalidSecret' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should unlock', $as_test( ( as ) => {
@@ -81,7 +85,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `aes128-${run_id}`,
                 [ 'encrypt', 'sign' ],
                 'AES',
-                128
+                128,
             );
 
             key_face.generateKey(
@@ -89,7 +93,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `aes192-${run_id}`,
                 [ 'derive', 'shared' ],
                 'AES',
-                192
+                192,
             );
 
             key_face.generateKey(
@@ -97,7 +101,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `aes256-${run_id}`,
                 [ 'temp' ],
                 'AES',
-                { bits: 256, some_test: '123rest' }
+                { bits: 256, some_test: '123rest' },
             );
 
             as.add( ( as, id ) => key_face.keyInfo( as, id ) );
@@ -123,7 +127,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `rsa1024-${run_id}`,
                 [ 'encrypt', 'sign' ],
                 'RSA',
-                1024
+                1024,
             );
         } ) );
 
@@ -133,7 +137,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `pwd32-${run_id}`,
                 [ 'shared', 'sign' ],
                 'Password',
-                32 * 8
+                32 * 8,
             );
 
             key_face.generateKey(
@@ -141,7 +145,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `pwd255-${run_id}`,
                 [ 'shared', 'sign' ],
                 'Password',
-                255 * 8
+                255 * 8,
             );
         } ) );
 
@@ -151,7 +155,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `hmac256-${run_id}`,
                 [ 'shared', 'sign' ],
                 'HMAC',
-                256
+                256,
             );
 
             key_face.generateKey(
@@ -159,7 +163,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `hmac512-${run_id}`,
                 [ 'shared', 'sign' ],
                 'HMAC',
-                512
+                512,
             );
         } ) );
 
@@ -171,7 +175,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aesdup-${run_id}`,
                     [],
                     'AES',
-                    128
+                    128,
                 );
                 as.add( ( as, id ) => as.state.id1 = id );
             } );
@@ -181,7 +185,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aesdup-${run_id}`,
                     [],
                     'AES',
-                    128
+                    128,
                 );
                 as.add( ( as, id ) => as.state.id2 = id );
             } );
@@ -195,14 +199,14 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `rsa1024-${run_id}`,
                     [ 'encrypt', 'sign' ],
                     'RSA',
-                    2048
+                    2048,
                 );
             },
             ( as, err ) => {
                 if ( err === 'OrigMismatch' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should fail on unsupported key', $as_test(
@@ -212,14 +216,14 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `inv1-${run_id}`,
                     [ 'encrypt', 'sign' ],
                     'INV',
-                    1
+                    1,
                 );
             },
             ( as, err ) => {
                 if ( err === 'UnsupportedType' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         // inject tests
@@ -231,7 +235,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 [ 'shared' ],
                 'AES',
                 128,
-                Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' )
+                Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' ),
             );
         } ) );
 
@@ -243,14 +247,14 @@ module.exports = function( describe, it, vars, storage_name ) {
                     [ 'shared' ],
                     'AES',
                     128,
-                    Buffer.from( '10a58869d74be5a374cf867cfb473800', 'hex' )
+                    Buffer.from( '10a58869d74be5a374cf867cfb473800', 'hex' ),
                 );
             },
             ( as, err ) => {
                 if ( err === 'OrigMismatch' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should fail inject on invalid key', $as_test(
@@ -261,14 +265,14 @@ module.exports = function( describe, it, vars, storage_name ) {
                     [ 'shared' ],
                     'AES',
                     128,
-                    Buffer.from( '10a58869d74be5a374cf867cfb4738', 'hex' )
+                    Buffer.from( '10a58869d74be5a374cf867cfb4738', 'hex' ),
                 );
             },
             ( as, err ) => {
                 if ( err === 'InvalidKey' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         // Inject encrypted
@@ -280,7 +284,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 [ 'encrypt' ],
                 'AES',
                 128,
-                Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' )
+                Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' ),
             );
             as.add( ( as, kek_id ) => {
                 key_face.injectEncryptedKey(
@@ -291,7 +295,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     128,
                     Buffer.from( '6d251e6944b051e04eaa6fb4dbf78465881572c3a96a612c111055707bd7614e00000000000000000000000000000000', 'hex' ),
                     kek_id,
-                    'CBC'
+                    'CBC',
                 );
             } );
             as.add( ( as, id ) => {
@@ -307,7 +311,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `rsa1024enc-${run_id}`,
                     [ 'encrypt' ],
                     'RSA',
-                    1024
+                    1024,
                 );
                 as.add( ( as, kek_id ) => {
                     key_face.injectEncryptedKey(
@@ -318,7 +322,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                         128,
                         Buffer.from( '6d251e6944b051e04eaa6fb4dbf78465881572c3a96a612c111055707bd7614e00000000000000000000000000000000', 'hex' ),
                         kek_id,
-                        'CBC'
+                        'CBC',
                     );
                 } );
             },
@@ -326,7 +330,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err.startsWith( 'InvalidKey' ) ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         //=====================
@@ -336,7 +340,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `aes128-${run_id}`,
                 [ 'encrypt', 'sign' ],
                 'AES',
-                128
+                128,
             );
 
             as.add( ( as, id ) => {
@@ -357,7 +361,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `aes128bdk-${run_id}`,
                 [ 'derive' ],
                 'AES',
-                128
+                128,
             );
 
             as.add( ( as, id ) => {
@@ -371,7 +375,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     'HKDF',
                     'SHA-256',
                     Buffer.from( '12345678' ),
-                    { info: 'INFO' }
+                    { info: 'INFO' },
                 );
                 key_face.extKeyInfo( as, `aes128derived-${run_id}` );
                 as.add( ( as, res ) => {
@@ -387,7 +391,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes128bdk2-${run_id}`,
                     [ 'derive' ],
                     'AES',
-                    128
+                    128,
                 );
 
                 as.add( ( as, id ) => {
@@ -401,7 +405,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                         'HKDF',
                         'SHA-256',
                         Buffer.from( '12345678' ),
-                        { info: 'INFO' }
+                        { info: 'INFO' },
                     );
                 } );
             },
@@ -409,7 +413,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'OrigMismatch' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should check "derive" bit', $as_test(
@@ -419,7 +423,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes128nonbdk-${run_id}`,
                     [ 'encrypt' ],
                     'AES',
-                    128
+                    128,
                 );
 
                 as.add( ( as, id ) => {
@@ -433,7 +437,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                         'HKDF',
                         'SHA-256',
                         Buffer.from( '12345678' ),
-                        { info: 'INFO' }
+                        { info: 'INFO' },
                     );
                 } );
             },
@@ -441,7 +445,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should fail on invalid KDF', $as_test(
@@ -451,7 +455,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes128bdk-${run_id}`,
                     [ 'derive' ],
                     'AES',
-                    128
+                    128,
                 );
 
                 as.add( ( as, id ) => {
@@ -465,7 +469,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                         'HKDFabc',
                         'SHA-256',
                         Buffer.from( '12345678' ),
-                        { info: 'INFO' }
+                        { info: 'INFO' },
                     );
                 } );
             },
@@ -473,7 +477,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'UnsupportedDerivation' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
 
@@ -487,7 +491,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes128toexp-${run_id}`,
                     [ 'shared' ],
                     'AES',
-                    128
+                    128,
                 );
 
                 as.add( ( as, id ) => {
@@ -495,13 +499,13 @@ module.exports = function( describe, it, vars, storage_name ) {
                         as,
                         id,
                         kek_info.id,
-                        'CBC'
+                        'CBC',
                     );
                     key_face.encryptedKey(
                         as,
                         id,
                         kek_info.id,
-                        'GCM'
+                        'GCM',
                     );
                 } );
             } );
@@ -513,13 +517,13 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `rsa1024kek-${run_id}`,
                 [ 'encrypt', 'sign' ],
                 'RSA',
-                1024
+                1024,
             );
 
             as.add( ( as, id ) => {
                 key_face.publicKey(
                     as,
-                    id
+                    id,
                 );
             } );
 
@@ -529,14 +533,14 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes128toexp-${run_id}`,
                     [ 'shared' ],
                     'AES',
-                    128
+                    128,
                 );
 
                 as.add( ( as, id ) => {
                     key_face.pubEncryptedKey(
                         as,
                         id,
-                        kek
+                        kek,
                     );
                 } );
             } );
@@ -552,7 +556,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                         `aes128nottoexp-${run_id}`,
                         [ 'encrypt' ],
                         'AES',
-                        128
+                        128,
                     );
 
                     as.add( ( as, id ) => {
@@ -560,7 +564,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                             as,
                             id,
                             kek_info.id,
-                            'CBC'
+                            'CBC',
                         );
                     } );
                 } );
@@ -569,7 +573,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should check for "encrypt" bit', $as_test(
@@ -581,7 +585,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                         as,
                         id,
                         id,
-                        'CBC'
+                        'CBC',
                     );
                 } );
             },
@@ -589,7 +593,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should forbid public key for symmetric keys', $as_test(
@@ -599,7 +603,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 as.add( ( as, { id } ) => {
                     key_face.publicKey(
                         as,
-                        id
+                        id,
                     );
                 } );
             },
@@ -607,7 +611,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should forbid public key encryption for symmetric keys', $as_test(
@@ -617,7 +621,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes128toexp-${run_id}`,
                     [ 'shared' ],
                     'AES',
-                    128
+                    128,
                 );
 
                 as.add( ( as, id ) => {
@@ -627,7 +631,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                         {
                             type: 'AES',
                             data: Buffer.from( '10a58869d74be5a374cf867cfb473859', 'hex' ),
-                        }
+                        },
                     );
                 } );
             },
@@ -635,7 +639,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should list with prefix', $as_test( ( as ) => {
@@ -660,7 +664,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `statstest-${run_id}`,
                     [],
                     'AES',
-                    128
+                    128,
                 );
 
                 as.add( ( as, id ) => {
@@ -687,7 +691,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                         expect( ki.failures ).equal( 3 );
                     } );
                 } );
-            }
+            },
         ) );
 
         it ( 'detect unknown key on external statistics', $as_test(
@@ -698,7 +702,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'UnknownKeyID' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         //=====================
@@ -730,7 +734,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `aes192enc-${run_id}`,
                 [ 'encrypt' ],
                 'AES',
-                192
+                192,
             );
 
             as.add( ( as, id ) => {
@@ -754,7 +758,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `rsa1024enc-${run_id}`,
                 [ 'encrypt' ],
                 'RSA',
-                1024
+                1024,
             );
 
             as.add( ( as, id ) => {
@@ -777,7 +781,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `rsa1024sign-${run_id}`,
                 [ 'sign' ],
                 'RSA',
-                1024
+                1024,
             );
 
             as.add( ( as, id ) => {
@@ -801,7 +805,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `rsa1024enc-${run_id}`,
                     [ 'encrypt' ],
                     'RSA',
-                    1024
+                    1024,
                 );
 
                 as.add( ( as, id ) => {
@@ -817,7 +821,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'InvalidData' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'sign & verify RSA fail', $as_test(
@@ -827,7 +831,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `rsa1024sign-${run_id}`,
                     [ 'sign' ],
                     'RSA',
-                    1024
+                    1024,
                 );
 
                 as.add( ( as, id ) => {
@@ -839,7 +843,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'InvalidSignature' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'verify Password', $as_test( ( as ) => {
@@ -850,7 +854,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 [ 'sign' ],
                 'Password',
                 16 * 8,
-                key
+                key,
             );
 
             as.add( ( as, id ) => {
@@ -872,7 +876,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     [ 'sign' ],
                     'Password',
                     16 * 8,
-                    key
+                    key,
                 );
 
                 as.add( ( as, id ) => {
@@ -885,7 +889,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'InvalidSignature' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'sign & verify HMAC', $as_test( ( as ) => {
@@ -894,7 +898,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 `hmac256sign-${run_id}`,
                 [ 'sign' ],
                 'HMAC',
-                256
+                256,
             );
 
             as.add( ( as, id ) => {
@@ -918,7 +922,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `hmac256sign-${run_id}`,
                     [ 'sign' ],
                     'HMAC',
-                    256
+                    256,
                 );
 
                 as.add( ( as, id ) => {
@@ -930,7 +934,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'InvalidSignature' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'obey "encrypt" bit on encrypt', $as_test(
@@ -940,7 +944,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes192fakeenc-${run_id}`,
                     [ 'sign' ],
                     'AES',
-                    192
+                    192,
                 );
 
                 as.add( ( as, id ) => {
@@ -952,7 +956,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'obey "encrypt" bit on decrypt', $as_test(
@@ -962,7 +966,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes192fakeenc-${run_id}`,
                     [ 'sign' ],
                     'AES',
-                    192
+                    192,
                 );
 
                 as.add( ( as, id ) => {
@@ -974,7 +978,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'obey "sign" on sign', $as_test(
@@ -984,7 +988,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes192fakesign-${run_id}`,
                     [ 'encrypt' ],
                     'AES',
-                    192
+                    192,
                 );
 
                 as.add( ( as, id ) => {
@@ -996,7 +1000,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'obey "sign" on verify', $as_test(
@@ -1006,7 +1010,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes192fakesign-${run_id}`,
                     [ 'encrypt' ],
                     'AES',
-                    192
+                    192,
                 );
 
                 as.add( ( as, id ) => {
@@ -1018,7 +1022,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'should detect not applicable verification', $as_test(
@@ -1028,7 +1032,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `aes192fakesign-${run_id}`,
                     [ 'encrypt' ],
                     'AES',
-                    192
+                    192,
                 );
 
                 as.add( ( as, id ) => {
@@ -1040,7 +1044,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                 if ( err === 'NotApplicable' ) {
                     as.success();
                 }
-            }
+            },
         ) );
 
         it ( 'obey failure limit', $as_test(
@@ -1050,7 +1054,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     `rsa1024fail-${run_id}`,
                     [ 'encrypt', 'sign' ],
                     'RSA',
-                    1024
+                    1024,
                 );
 
                 as.add( ( as, id ) => {
@@ -1065,7 +1069,7 @@ module.exports = function( describe, it, vars, storage_name ) {
                     expect( as.state.error_info ).equal( 'Failure limit has reached' );
                     as.success();
                 }
-            }
+            },
         ) );
     } );
 };

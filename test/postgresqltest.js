@@ -48,7 +48,7 @@ describe( 'PostgreSQL', function() {
                             '-user=ftntest',
                             '-password=test',
                             `-locations=${flyway_locations}`,
-                        ]
+                        ],
                     );
 
                     if ( res.status ) {
@@ -63,7 +63,7 @@ describe( 'PostgreSQL', function() {
                 console.log( err );
                 console.log( as.state.error_info );
                 done( as.state.last_exception || 'Fail' );
-            }
+            },
         ).add( ( as ) => done() )
             .execute();
     } );
