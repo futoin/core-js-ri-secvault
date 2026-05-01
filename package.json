@@ -1,6 +1,6 @@
 {
   "name": "futoin-secvault",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "description": "FutoIn Secure Vault reference implementation",
   "main": "lib/main.js",
   "files": [
